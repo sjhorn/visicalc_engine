@@ -1,6 +1,7 @@
 import 'package:test/test.dart';
 import 'package:petitparser/petitparser.dart';
 import 'package:a1/a1.dart';
+import 'package:visicalc_engine/src/formula/types/count_function.dart';
 import 'package:visicalc_engine/visicalc_engine.dart';
 
 void main() {
@@ -136,6 +137,8 @@ void main() {
   group('wrappers', () {
     test('functions', () async {
       final p = evaluator.buildFrom(evaluator.left()).end();
+      expectEval(p, '@count()', isA<CountFunction>(), isA<NumberResult>(), 0);
+      expectEval(p, '@su(12)', isA<ErrorType>(), isA<ErrorResult>(), null);
       expectEval(p, '@sum(12)', isA<SumFunction>(), isA<NumberResult>(), 12);
       expectEval(p, '@sum(12+2)', isA<SumFunction>(), isA<NumberResult>(), 14);
       expectEval(

@@ -1,7 +1,7 @@
 import '../result_cache_map.dart';
 import '../results/number_result.dart';
-import 'formula_type.dart';
 import '../results/result_type.dart';
+import 'formula_type.dart';
 
 class NumType extends FormulaType {
   NumType(this.value);
@@ -23,4 +23,14 @@ class NumType extends FormulaType {
   void visit(FormulaTypeVisitor callback) {
     callback(this);
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is NumType && other.value == value;
+  }
+
+  @override
+  int get hashCode => value.hashCode;
 }

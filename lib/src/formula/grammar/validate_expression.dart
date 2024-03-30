@@ -57,10 +57,7 @@ class ValidateExpression extends Expression {
 
   @override
   Parser<A1Cursor> expression() {
-    return super.expression().map((value) {
-      //print('Expression -> $value');
-      return value;
-    });
+    return super.expression().map((value) => value);
   }
 
   @override
@@ -91,42 +88,30 @@ class ValidateExpression extends Expression {
         (ref0(expression) & (char(',') & ref0(expression)).star() & char(','))
             .end()
             .map((value) => A1Cursor.end()),
-        super.list().map((value) {
-          final (_, rest) = value;
-          final last = (rest as Iterable).flattened.last.$2;
-
-          return switch (last) {
-            A1Cursor() => last,
-            null => A1Cursor.none(),
-            _ => A1Cursor.end(),
-          };
-        }),
+        super.list().map((value) => (value.$2 as Iterable).flattened.last.$2),
       ].toChoiceParser();
 
   @override
   Parser<A1Cursor> additive() => seq2(
-        super.additive().map((value) {
-          final last = (value.elements as Iterable).flattened.last;
-          return last ?? A1Cursor.none();
-        }),
+        super
+            .additive()
+            .map((value) => (value.elements as Iterable).flattened.last),
         anyOf('+-').end().optional(),
       ).map2((value, String? op) => op == null ? value : A1Cursor.end());
 
   @override
   Parser<A1Cursor> multiplicative() => seq2(
-        super.multiplicative().map((value) {
-          final last = (value.elements as Iterable).flattened.last;
-          return last ?? A1Cursor.none();
-        }),
+        super
+            .multiplicative()
+            .map((value) => (value.elements as Iterable).flattened.last),
         anyOf('*/').end().optional(),
       ).map2((value, String? op) => op == null ? value : A1Cursor.end());
 
   @override
   Parser<A1Cursor> power() => seq2(
-        super.power().map((value) {
-          final last = (value.elements as Iterable).flattened.last;
-          return last ?? A1Cursor.none();
-        }),
+        super
+            .power()
+            .map((value) => (value.elements as Iterable).flattened.last),
         anyOf('^').end().optional(),
       ).map2((value, String? op) => op == null ? value : A1Cursor.end());
 

@@ -1,6 +1,5 @@
 import 'package:a1/a1.dart';
 import '../results/error_result.dart';
-import '../types/error_type.dart';
 import '../result_cache_map.dart';
 import '../types/list_range_type.dart';
 import '../types/reference_type.dart';
@@ -25,9 +24,6 @@ class LookupFunction extends FormulaType {
       if (lookupNumber is ErrorResult) return ErrorResult();
       final range = paramList[1];
       if (lookupNumber is NumberResult && range is ListRangeType) {
-        if (range.list.whereType<ErrorType>().isNotEmpty) {
-          return ErrorResult();
-        }
         if (range.isColumnLine || range.isRowLine) {
           A1? lastCell;
           for (A1 cell in range.from.rangeTo(range.to)) {

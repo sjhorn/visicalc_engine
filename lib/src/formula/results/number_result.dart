@@ -12,7 +12,8 @@ class NumberResult extends ResultType implements Comparable {
 
   @override
   String toString() => switch (value.abs()) {
-        num(isNaN: var nan) when nan == true => 'ERROR',
+        num(isNaN: var nan, isInfinite: var infinite) when nan || infinite =>
+          'ERROR',
         0 => '0',
         (>= minExponent && < maxExponent) => numFormat.format(value),
         _ => value.toStringAsExponential().length > 11

@@ -284,6 +284,7 @@ void main() {
       expect(parser.parse('-A1+A2/12,').value, endCursor);
       expect(parser.parse('q4*q4,').value, endCursor);
       expect(parser.parse('@Sum(q4),').value, endCursor);
+      expect(parser.parse('q4,1').value, noCursor);
     });
 
     test('bare function', () async {
@@ -314,6 +315,9 @@ void main() {
       expect(parser.parse('@SUM(A1)/A1*@AVG(ZZZ').value, A1Cursor.offset(3));
       expect(parser.parse('@SUM(A1,B2)/').value, endCursor);
       expect(parser.parse('@SUM(A1,B2)/A1*@AVG(ZZZ1...').value, endCursor);
+      expect(parser.parse('1+1').value, noCursor);
+      expect(parser.parse('1+').value, endCursor);
+      expect(parser.parse('1+a1').value, A1Cursor.offset(2));
     });
 
     test('expression with list', () async {
@@ -329,6 +333,25 @@ void main() {
       expect(parser.parse('A1+@SUM(B2,A33)+@AVG(V4,@SUM(123)').value, noCursor);
       expect(parser.parse('A1+@SUM(B2,A33)+@AVG(V4,@SUM(123))+A').value,
           A1Cursor.offset(1));
+    });
+  });
+
+  group('full expression', () {
+    final parser = ValidateExpression().build();
+    test(' methods', () {
+      expect(parser.parse('A1+@SUM(B2,A33)+@AVG(V4,@SUM(123)').value, noCursor);
+    });
+  });
+
+  group('A1Cursor', () {
+    test(' methods', () {
+      final a1c = A1Cursor.offset(0, true);
+      expect(a1c.toString(), equals('end'));
+      expect(A1Cursor.offset(1).toString(), equals('offset(offset: 1)'));
+
+      expect(a1c.hashCode, equals(A1Cursor.end(true).hashCode));
+
+      expect(a1c.copyWith(kind: A1CursorKind.end), equals(a1c));
     });
   });
 }

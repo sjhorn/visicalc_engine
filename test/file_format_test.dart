@@ -28,7 +28,8 @@ void main() {
       final parser = fileFormat.buildFrom(fileFormat.cellExpression());
       expect(parser.parse('>A9:/FR"TRUE').value,
           equals(('A9'.a1, 'R', LabelFormat('TRUE'))));
-
+      expect(parser.parse('>G9:/-=').value,
+          equals(('G9'.a1, null, RepeatingFormat('='))));
       expect(parser.parse('>G8:+F8*10').value,
           equals(('G8'.a1, null, ExpressionFormat('+F8*10'))));
       expect(parser.parse('>F8:+F7+1').value,
@@ -45,11 +46,29 @@ void main() {
 
     test('global directive', () async {
       final parser = fileFormat.buildFrom(fileFormat.start());
+
       expect(parser.parse('/W1').value, equals(GlobalDirectiveFormat('W1')));
       expect(parser.parse('/GOC').value, equals(GlobalDirectiveFormat('GOC')));
       expect(parser.parse('/GRA').value, equals(GlobalDirectiveFormat('GRA')));
       expect(parser.parse('/X>A1:>C14:').value,
           equals(GlobalDirectiveFormat('X>A1:>C14:')));
+    });
+
+    test('hashCodes', () async {
+      expect(LabelFormat('test').hashCode, LabelFormat('test').hashCode);
+      expect(
+        ExpressionFormat('+A1').hashCode,
+        ExpressionFormat('+A1').hashCode,
+      );
+      expect(
+        GlobalDirectiveFormat('/GC10').hashCode,
+        GlobalDirectiveFormat('/GC10').hashCode,
+      );
+      expect(
+        RepeatingFormat('/-=').hashCode,
+        RepeatingFormat('/-=').hashCode,
+      );
+      expect(RepeatingFormat('=').toString(), equals('='));
     });
   });
 }
