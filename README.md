@@ -1,7 +1,7 @@
 # VisiCalc Engine Package
 [![Pub Package](https://img.shields.io/pub/v/visicalc_engine.svg)](https://pub.dev/packages/visicalc_engine)
 [![Build Status](https://github.com/sjhorn/visicalc_engine/actions/workflows/dart.yml/badge.svg?branch=main)](https://github.com/sjhorn/visicalc_engine/actions)
-[![codecov](https://codecov.io/gh/sjhorn/visicalc_engine/graph/badge.svg?token=O8MCNXGB6A)](https://codecov.io/gh/sjhorn/visicalc_engine)
+[![codecov](https://codecov.io/gh/sjhorn/visicalc_engine/graph/badge.svg?token=78WVGR0OHY)](https://codecov.io/gh/sjhorn/visicalc_engine)
 [![GitHub Issues](https://img.shields.io/github/issues/sjhorn/visicalc_engine.svg)](https://github.com/sjhorn/visicalc_engine/issues)
 [![GitHub Forks](https://img.shields.io/github/forks/sjhorn/visicalc_engine.svg)](https://github.com/sjhorn/visicalc_engine/network)
 [![GitHub Stars](https://img.shields.io/github/stars/sjhorn/visicalc_engine.svg)](https://github.com/sjhorn/visicalc_engine/stargazers)
@@ -20,15 +20,46 @@ From [wikipedia](https://en.wikipedia.org/wiki/VisiCalc)
 
 ## Features
 
- - 
+ - Supports the calculation and reference language from VisiCalc explained in the [reference card](http://www.bricklin.com/history/refcard1.htm)
+
+ ![Reference Card](https://raw.github.com/sjhorn/visicalc_engine/main/assets/refcard.png)
 
 ## Getting started
 
 Simple usage examples below:
 
 ```dart
- 
+ final rows = {
+    'A1'.a1: '-12.2',
+    'A2'.a1: '(a5 + 45)',
+    'A3'.a1: '13',
+    'A4'.a1: '+A2 + A5 - A6',
+    'A5'.a1: '-A3 / 2 + 2 ',
+    'A6'.a1: '.23 * 2',
+    'B1'.a1: 'A1 + A3 * 3',
+    'B2'.a1: '(A1 + A3) * 3',
+    'B3'.a1: '12.23e-12',
+    'B4'.a1: '.23e12',
+    'B5'.a1: 'b4',
+    'B6'.a1: 'b2',
+    'B7'.a1: '@sum(a1...b6)' // 1 + 1 + 28
+  };
 
+  final evaluator = Evaluator();
+  final parser = evaluator.build();
+
+  final Map<A1, FormulaType> varMap = <A1, FormulaType>{};
+  for (final MapEntry(:key, :value) in rows.entries) {
+    final ast = parser.parse(value);
+
+    if (ast is Success) {
+      varMap[key] = ast.value;
+    }
+  }
+  for (final MapEntry(:key, :value) in varMap.entries) {
+    final evalResult = value.eval(ResultCacheMap(varMap));
+    print('$key -> ${evalResult.runtimeType} -> $evalResult');
+  }
 ```
 The `test/` directory explores other use cases for the A1 types and library.
 
