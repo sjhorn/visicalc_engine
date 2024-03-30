@@ -1,0 +1,24 @@
+name: visicalc_engine
+version: 1.0.0
+
+homepage: https://pub.dev/packages/visicalc_engine
+repository: https://github.com/sjhorn/visicalc_engine
+description: A clone of the visicalc spreadsheet engine
+screenshots:
+  - description: 'A1 logo for A1 Notation'
+    path: assets/visicalc_engine.png
+topics:
+  - visicalc
+  - spreadsheet
+  - worksheet
+  - parsing
+
+environment:
+  sdk: ^3.3.0
+dependencies:
+  petitparser: ^6.0.2
+  intl: ^0.19.0
+  a1: ^1.0.2
+dev_dependencies:
+  lints: ^3.0.0
+  test: ^1.24.0
