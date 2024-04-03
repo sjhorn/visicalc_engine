@@ -1,13 +1,11 @@
-import '../result_cache_map.dart';
-import '../results/result_type.dart';
-import 'formula_type.dart';
+import 'package:visicalc_engine/visicalc_engine.dart';
 
 class BracketsType extends FormulaType {
   FormulaType value;
   BracketsType(this.value);
 
   @override
-  ResultType eval(ResultCacheMap resultCache,
+  ResultType eval(ResultTypeCache resultCache,
       [List<FormulaType>? visitedList]) {
     visitedList ??= [];
     return value.eval(resultCache, [...visitedList, this]);

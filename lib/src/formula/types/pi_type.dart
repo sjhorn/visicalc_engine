@@ -1,12 +1,8 @@
-import '../result_cache_map.dart';
-
-import '../results/number_result.dart';
-import '../results/result_type.dart';
-import 'formula_type.dart';
+import 'package:visicalc_engine/visicalc_engine.dart';
 
 class PiType extends FormulaType {
   @override
-  ResultType eval(ResultCacheMap resultCache,
+  ResultType eval(ResultTypeCache resultCache,
           [List<FormulaType>? visitedList]) =>
       NumberResult(3.1415926536);
 

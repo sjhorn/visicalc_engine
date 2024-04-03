@@ -1,7 +1,6 @@
 import 'package:test/test.dart';
 import 'package:petitparser/petitparser.dart';
 import 'package:a1/a1.dart';
-import 'package:visicalc_engine/src/formula/types/count_function.dart';
 import 'package:visicalc_engine/visicalc_engine.dart';
 
 void main() {
@@ -16,7 +15,7 @@ void main() {
       'DD3'.a1: ErrorType(),
     };
     FormulaType formula = parser.parse(expression).value;
-    ResultType result = formula.eval(ResultCacheMap(variables));
+    ResultType result = formula.eval(ResultTypeCache(variables));
     return (formula, result);
   }
 

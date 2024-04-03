@@ -1,18 +1,13 @@
 import 'dart:math';
 
-import '../result_cache_map.dart';
-import '../results/error_result.dart';
-import '../results/number_result.dart';
-import '../results/result_type.dart';
-import '../types/formula_type.dart';
-import '../types/list_type.dart';
+import 'package:visicalc_engine/visicalc_engine.dart';
 
 class NpvFunction extends FormulaType {
   final FormulaType? params;
   NpvFunction(this.params);
 
   @override
-  ResultType eval(ResultCacheMap resultCache,
+  ResultType eval(ResultTypeCache resultCache,
       [List<FormulaType>? visitedList]) {
     if (params is ListType && (params as ListType).list.isNotEmpty) {
       final paramList = (params as ListType).list;
@@ -40,7 +35,7 @@ class NpvFunction extends FormulaType {
   }
 
   Iterable<ResultType> flattenList(Iterable<FormulaType> formulaList,
-      ResultCacheMap resultCache, List<FormulaType> visitedList) {
+      ResultTypeCache resultCache, List<FormulaType> visitedList) {
     return formulaList.fold<List<ResultType>>(
         [],
         (previousValue, element) => previousValue

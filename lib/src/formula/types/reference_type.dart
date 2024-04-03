@@ -1,12 +1,5 @@
 import 'package:a1/a1.dart';
-import '../results/error_result.dart';
-
-import '../result_cache_map.dart';
-
-import '../results/empty_result.dart';
-import '../results/not_available_result.dart';
-import '../results/result_type.dart';
-import 'formula_type.dart';
+import 'package:visicalc_engine/visicalc_engine.dart';
 
 class ReferenceType extends FormulaType {
   ReferenceType(this._a1);
@@ -18,7 +11,7 @@ class ReferenceType extends FormulaType {
   bool _deletedReference = false;
 
   @override
-  ResultType eval(ResultCacheMap resultCache,
+  ResultType eval(ResultTypeCache resultCache,
       [List<FormulaType>? visitedList]) {
     visitedList ??= [];
     if (_deletedReference) {
@@ -33,8 +26,12 @@ class ReferenceType extends FormulaType {
     }
   }
 
-  void move(int columnIncrement, int rowIncrement) {
+  void moveByVector(int columnIncrement, int rowIncrement) {
     _a1 = A1.fromVector(_a1.column + columnIncrement, _a1.row + rowIncrement);
+  }
+
+  void moveTo(A1 to) {
+    _a1 = to;
   }
 
   @override

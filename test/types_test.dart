@@ -1,11 +1,9 @@
 import 'package:a1/a1.dart';
 import 'package:test/test.dart';
-import 'package:visicalc_engine/src/formula/types/count_function.dart';
-import 'package:visicalc_engine/src/formula/types/list_range_type.dart';
 import 'package:visicalc_engine/visicalc_engine.dart';
 
 void main() {
-  final cache = ResultCacheMap({});
+  final cache = ResultTypeCache({});
   test('reference type', () async {
     final ref = ReferenceType('A1'.a1);
 
@@ -107,7 +105,7 @@ void main() {
     );
   });
   test('lookup function type', () async {
-    final cache2 = ResultCacheMap({
+    final cache2 = ResultTypeCache({
       'A1'.a1: NumType(1),
       'A2'.a1: NumType(2),
       'B1'.a1: NumType(1),

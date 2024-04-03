@@ -1,6 +1,6 @@
 import 'package:intl/intl.dart';
 
-import 'result_type.dart';
+import 'package:visicalc_engine/visicalc_engine.dart';
 
 class NumberResult extends ResultType implements Comparable {
   static const double minExponent = 1.0e-6;

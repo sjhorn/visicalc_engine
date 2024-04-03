@@ -1,9 +1,4 @@
-import '../results/error_result.dart';
-
-import '../result_cache_map.dart';
-import '../results/number_result.dart';
-import '../results/result_type.dart';
-import 'formula_type.dart';
+import 'package:visicalc_engine/visicalc_engine.dart';
 
 class BinaryNumOp extends FormulaType {
   final String name;
@@ -19,7 +14,7 @@ class BinaryNumOp extends FormulaType {
   );
 
   @override
-  ResultType eval(ResultCacheMap resultCache,
+  ResultType eval(ResultTypeCache resultCache,
       [List<FormulaType>? visitedList]) {
     final leftResult = left.eval(resultCache, visitedList);
     final rightResult = right.eval(resultCache, visitedList);

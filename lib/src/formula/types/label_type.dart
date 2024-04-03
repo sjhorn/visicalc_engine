@@ -1,4 +1,4 @@
-import '../result_cache_map.dart';
+import '../../model/result_type_cache.dart';
 import '../results/label_result.dart';
 import '../results/result_type.dart';
 import '../types/formula_type.dart';
@@ -8,7 +8,7 @@ class LabelType extends FormulaType {
   LabelType(this.label);
 
   @override
-  ResultType eval(ResultCacheMap resultCache,
+  ResultType eval(ResultTypeCache resultCache,
           [List<FormulaType>? visitedList]) =>
       LabelResult(label);
 

@@ -1,4 +1,4 @@
-import 'result_type.dart';
+import 'package:visicalc_engine/visicalc_engine.dart';
 
 class ListResult extends ResultType {
   final List<ResultType> list;

@@ -1,4 +1,4 @@
-import '../result_cache_map.dart';
+import '../../model/result_type_cache.dart';
 import '../results/empty_result.dart';
 import '../results/result_type.dart';
 import 'formula_type.dart';
@@ -7,7 +7,7 @@ class EmptyType extends FormulaType {
   EmptyType();
 
   @override
-  ResultType eval(ResultCacheMap resultCache,
+  ResultType eval(ResultTypeCache resultCache,
           [List<FormulaType>? visitedList]) =>
       EmptyResult();
 

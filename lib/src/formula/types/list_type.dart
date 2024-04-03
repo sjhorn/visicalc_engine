@@ -1,10 +1,5 @@
 import 'package:a1/a1.dart';
-import '../result_cache_map.dart';
-import '../results/list_result.dart';
-import '../results/not_available_result.dart';
-import '../results/result_type.dart';
-import 'formula_type.dart';
-import 'reference_type.dart';
+import 'package:visicalc_engine/visicalc_engine.dart';
 
 class ListType extends FormulaType {
   final List<FormulaType> list;
@@ -15,7 +10,7 @@ class ListType extends FormulaType {
   }
 
   @override
-  ResultType eval(ResultCacheMap resultCache,
+  ResultType eval(ResultTypeCache resultCache,
       [List<FormulaType>? visitedList]) {
     visitedList ??= [];
     if (visitedList.contains(this)) {

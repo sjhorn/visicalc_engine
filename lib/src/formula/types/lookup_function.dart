@@ -1,20 +1,12 @@
 import 'package:a1/a1.dart';
-import '../results/error_result.dart';
-import '../result_cache_map.dart';
-import '../types/list_range_type.dart';
-import '../types/reference_type.dart';
-
-import '../results/number_result.dart';
-import '../results/result_type.dart';
-import 'formula_type.dart';
-import 'list_type.dart';
+import 'package:visicalc_engine/visicalc_engine.dart';
 
 class LookupFunction extends FormulaType {
   final FormulaType? params;
   LookupFunction(this.params);
 
   @override
-  ResultType eval(ResultCacheMap resultCache,
+  ResultType eval(ResultTypeCache resultCache,
       [List<FormulaType>? visitedList]) {
     if (params is ListType && (params as ListType).list.isNotEmpty) {
       final paramList = (params as ListType).list;

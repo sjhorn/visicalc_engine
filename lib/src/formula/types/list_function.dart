@@ -1,7 +1,7 @@
 import '../results/error_result.dart';
 import '../types/reference_type.dart';
 
-import '../result_cache_map.dart';
+import '../../model/result_type_cache.dart';
 import '../results/list_result.dart';
 import '../results/result_type.dart';
 import 'error_type.dart';
@@ -15,7 +15,7 @@ abstract class ListFunction extends FormulaType {
   ResultType evalList(List<ResultType> resultList);
 
   @override
-  ResultType eval(ResultCacheMap resultCache,
+  ResultType eval(ResultTypeCache resultCache,
       [List<FormulaType>? visitedList]) {
     visitedList ??= [];
     switch (value) {

@@ -1,8 +1,4 @@
-import 'formula_type.dart';
-import 'sum_function.dart';
-
-import '../results/number_result.dart';
-import '../results/result_type.dart';
+import 'package:visicalc_engine/visicalc_engine.dart';
 
 class AverageFunction extends SumFunction {
   AverageFunction(super.value);

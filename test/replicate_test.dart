@@ -46,7 +46,7 @@ void main() {
       final (formula, tree) = parseFormulaTree('+A1+B2');
       expect(formula.asFormula, equals('+A1+B2'));
       for (ReferenceType ref in tree.whereType<ReferenceType>()) {
-        ref.move(1, 1);
+        ref.moveByVector(1, 1);
       }
       expect(formula.asFormula, equals('+B2+C3'));
     });

@@ -1,7 +1,4 @@
-import '../result_cache_map.dart';
-import '../results/number_result.dart';
-import '../results/result_type.dart';
-import 'formula_type.dart';
+import 'package:visicalc_engine/visicalc_engine.dart';
 
 class NumType extends FormulaType {
   NumType(this.value);
@@ -9,7 +6,7 @@ class NumType extends FormulaType {
   final num value;
 
   @override
-  ResultType eval(ResultCacheMap resultCache,
+  ResultType eval(ResultTypeCache resultCache,
           [List<FormulaType>? visitedList]) =>
       NumberResult(value);
 

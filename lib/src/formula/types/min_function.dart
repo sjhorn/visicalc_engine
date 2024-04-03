@@ -1,7 +1,4 @@
-import '../results/number_result.dart';
-import '../results/result_type.dart';
-import 'formula_type.dart';
-import 'list_function.dart';
+import 'package:visicalc_engine/visicalc_engine.dart';
 
 class MinFunction extends ListFunction {
   MinFunction(super.value);
