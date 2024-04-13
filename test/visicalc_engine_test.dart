@@ -520,8 +520,7 @@ void main() {
       'A1'.a1: 'A2',
       'A2'.a1: '12',
       'A3'.a1: '/-=',
-      'A3'.a1: '/F',
-    });
+    }, parseErrorThrows: true);
     test(' - columnsAndRows', () async {
       expect(
           engine.columnsAndRows(criteria: (a1) => false).$1, equals(<int>[]));
