@@ -20,8 +20,8 @@ typedef CellChangedCallback = void Function(
 
 class Engine with Iterable<A1> {
   static final formatExpression = FormatExpression().build();
-  static final evaluator = Evaluator().build();
-  static final validator = ValidateExpression().build();
+  // static final evaluator = Evaluator().build();
+  // static final validator = ValidateExpression().build();
 
   final HashSet<CellChangedCallback> _listeners =
       HashSet<CellChangedCallback>();
@@ -127,13 +127,11 @@ class Engine with Iterable<A1> {
 
   Iterable<A1> get keys => _cellMap.keys;
 
-  static bool _all(cell) => true;
-
   (List<int>, List<int>) columnsAndRows({
-    bool Function(A1 cell) criteria = _all,
+    bool Function(A1 cell)? criteria,
     Iterable<A1>? a1Iterable,
   }) {
-    final cellsInRange = (a1Iterable ?? keys).where(criteria);
+    final cellsInRange = (a1Iterable ?? keys).where(criteria ?? (_) => true);
 
     if (cellsInRange.isEmpty) {
       return ([], []);
@@ -399,13 +397,7 @@ class Engine with Iterable<A1> {
         final a1 = A1.fromVector(column, row);
         final cell = _cellMap[a1];
         buffer.write(cell?.contentString.padRight(20) ?? ''.padRight(20));
-        buffer.write(' | ');
-        if (cell?.content is ExpressionContent) {
-          buffer.write(cell?.formattedString(20) ?? ''.padRight(20));
-        } else {
-          buffer.write(''.padRight(20));
-        }
-        buffer.write(' | ');
+        buffer.write(' | ${cell?.formattedString(20) ?? "".padRight(20)} | ');
       }
       buffer.write('\n');
     }

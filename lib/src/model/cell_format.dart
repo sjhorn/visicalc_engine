@@ -25,6 +25,5 @@ enum CellFormat {
         CellFormat.integer => 'I',
         CellFormat.left => 'L',
         CellFormat.right => 'R',
-        _ => null,
       };
 }

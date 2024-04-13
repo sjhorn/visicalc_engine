@@ -24,6 +24,15 @@ void main() {
     setUp(() {
       engine = Engine(sheet);
     });
+
+    test(' - errors', () async {
+      final engine = Engine({'A1'.a1: '@'});
+      expect(engine['a1'.a1]?.formulaType, isA<ErrorType>());
+      expect(engine['a1'.a1]?.resultType, isA<ErrorResult>());
+
+      expect(() => Engine({'A1'.a1: '@'}, parseErrorThrows: true),
+          throwsA(isA<FormatException>()));
+    });
     test(' - a negative number', () async {
       expect(engine['A1'.a1]!.formulaType, equals(NegativeOp(NumType(12.2))));
       expect(engine['A1'.a1]!.resultType, equals(NumberResult(-12.2)));
@@ -256,12 +265,19 @@ void main() {
     Engine engine = Engine({});
 
     List<(CellChangeType, Set<A1>)> changes = [];
+    void listener(a1Set, changeType) {
+      changes.add((changeType, a1Set));
+    }
+
     setUp(() {
       changes.clear();
       engine = Engine(sheet);
-      engine.addListener((a1Set, changeType) {
-        changes.add((changeType, a1Set));
-      });
+      engine.addListener(listener);
+    });
+    test(' - remove listener', () async {
+      engine.removeListener(listener);
+      engine['b6'.a1] = '-12.2';
+      expect(changes.isEmpty, isTrue);
     });
     test(' - add single cell without references triggers listeners', () async {
       engine['b6'.a1] = '-12.2';
@@ -497,6 +513,39 @@ void main() {
 
       expect(engine.referencesTo('A1'.a1), containsAll({'B5', 'B1'}.a1));
       expect(engine.referencesTo('B2'.a1), containsAll({'B10'}.a1));
+    });
+  });
+  group('misc methods', () {
+    final engine = Engine({
+      'A1'.a1: 'A2',
+      'A2'.a1: '12',
+      'A3'.a1: '/-=',
+      'A3'.a1: '/F',
+    });
+    test(' - columnsAndRows', () async {
+      expect(
+          engine.columnsAndRows(criteria: (a1) => false).$1, equals(<int>[]));
+      expect(
+          engine.columnsAndRows(criteria: (a1) => false).$2, equals(<int>[]));
+    });
+    test(' - iterator', () async {
+      expect(engine.iterator.moveNext(), isTrue);
+    });
+    test(' - toString', () async {
+      expect(
+          engine.toString(),
+          equals('          A fx           |          A           | \n'
+              '------------------------------------------------\n'
+              ' 1  A2                   | 12                   | \n'
+              ' 2  12                   | 12                   | \n'
+              ' 3  =                    | ==================== | \n'
+              ''));
+    });
+    test(' - referenceToString', () async {
+      expect(
+        engine.referencesToString(),
+        equals('A2: {A1}            \n'),
+      );
     });
   });
 }
