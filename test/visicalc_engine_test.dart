@@ -338,7 +338,7 @@ void main() {
       'B1'.a1: 'A1+A3*3',
       'B2'.a1: '(A1+A3)*3',
       'B3'.a1: '12.23e-12',
-      'B4'.a1: '.23e12',
+      'B4'.a1: '.12345678901234e-7',
       'B5'.a1: 'b4',
       'B6'.a1: 'b2',
       'B7'.a1: '@sum(b1...b6)',
@@ -398,7 +398,7 @@ void main() {
       expect(engine['A1'.a1]?.resultType, isA<ErrorResult>());
       expect(engine['A2'.a1]?.resultType, isA<ErrorResult>());
       expect(engine['A3'.a1]?.formulaType?.asFormula, equals('1.223e-11'));
-      expect(engine['A4'.a1]?.formulaType?.asFormula, equals('230000000000.0'));
+      expect(engine['A4'.a1]?.formulaType?.asFormula, equals('1.23457e-8'));
       expect(engine['A5'.a1]?.formulaType?.asFormula, equals('A4'));
       expect(engine['A6'.a1]?.formulaType?.asFormula, equals('A2'));
       expect(engine['A7'.a1]?.formulaType?.asFormula, isNull);
