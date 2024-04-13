@@ -26,4 +26,14 @@ class NegativeOp extends FormulaType {
     callback(this);
     value.visit(callback);
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is NegativeOp && other.value == value;
+  }
+
+  @override
+  int get hashCode => value.hashCode;
 }

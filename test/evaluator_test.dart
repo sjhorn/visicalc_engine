@@ -8,11 +8,11 @@ void main() {
 
   (FormulaType formula, ResultType result) parseAndEval(
       Parser<FormulaType> parser, String expression) {
-    Map<A1, FormulaType> variables = {
-      'A1'.a1: NumType(12.12e12),
-      'Z3'.a1: ReferenceType('A1'.a1),
-      'C2'.a1: NumType(2),
-      'DD3'.a1: ErrorType(),
+    Map<A1, Cell> variables = {
+      'A1'.a1: NumType(12.12e12).cell,
+      'Z3'.a1: ReferenceType('A1'.a1).cell,
+      'C2'.a1: NumType(2).cell,
+      'DD3'.a1: ErrorType().cell,
     };
     FormulaType formula = parser.parse(expression).value;
     ResultType result = formula.eval(ResultTypeCache(variables));

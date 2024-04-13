@@ -6,4 +6,13 @@ class LabelResult extends ResultType {
 
   @override
   String toString() => label;
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is LabelResult && other.label == label;
+  }
+
+  @override
+  int get hashCode => label.hashCode;
 }

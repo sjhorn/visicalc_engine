@@ -15,6 +15,12 @@ void main() {
       expect(references,
           containsAll(['A3', 'B4', 'C1', 'C2', 'D1', 'D2', 'C5'].a1));
     });
+    test('move reference', () async {
+      final ref = ReferenceType('A1'.a1);
+      expect(ref.a1, equals('A1'.a1));
+      ref.moveTo('B1'.a1);
+      expect(ref.a1, equals('B1'.a1));
+    });
 
     test('cell depedencies', () async {
       Map<A1, FormulaType> cells = {
@@ -31,7 +37,25 @@ void main() {
           }
         });
       }
-      //print(dependencyMap);
+    });
+    test('cell lookup depedencies', () async {
+      Map<A1, Cell> sheet = {
+        'a1'.a1: NumType(1).cell,
+        'a2'.a1: NumType(2).cell,
+        'a3'.a1: NumType(3).cell,
+        'a4'.a1: NumType(4).cell,
+        'b1'.a1: NumType(10).cell,
+        'b2'.a1: NumType(20).cell,
+        'b3'.a1: NumType(30).cell,
+      };
+      final result = parser.parse('+A4+@LOOKUP(1,A1...A3)').value;
+      expect(result.references, containsAll({'A1', 'A2', 'A3', 'A4'}.a1));
+      expect(result.references, containsAll({'B1', 'B2', 'B3'}.a1));
+      expect(result.eval(ResultTypeCache(sheet)), isA<NumberResult>());
+      result.markDeletedCell('C1'.a1);
+      expect(result.eval(ResultTypeCache(sheet)), isA<NumberResult>());
+      result.markDeletedCell('A1'.a1);
+      expect(result.eval(ResultTypeCache(sheet)), isA<ErrorResult>());
     });
   });
 }

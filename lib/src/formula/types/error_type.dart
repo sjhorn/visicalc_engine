@@ -4,6 +4,10 @@ import '../results/result_type.dart';
 import 'formula_type.dart';
 
 class ErrorType extends FormulaType {
+  final String errorMessage;
+
+  ErrorType([this.errorMessage = '']);
+
   @override
   ResultType eval(ResultTypeCache resultCache,
           [List<FormulaType>? visitedList]) =>

@@ -43,4 +43,8 @@ void main() {
       equals(ListResult([NumberResult(1)]).hashCode),
     );
   });
+  test('label result type', () async {
+    final label = LabelResult('hello');
+    expect(label.hashCode, equals(LabelResult('hello').hashCode));
+  });
 }

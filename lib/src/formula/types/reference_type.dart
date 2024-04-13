@@ -8,13 +8,13 @@ class ReferenceType extends FormulaType {
       ReferenceType(a1String.a1);
   A1 _a1;
   A1 get a1 => _a1;
-  bool _deletedReference = false;
+  bool _isDeleteReference = false;
 
   @override
   ResultType eval(ResultTypeCache resultCache,
       [List<FormulaType>? visitedList]) {
     visitedList ??= [];
-    if (_deletedReference) {
+    if (_isDeleteReference) {
       return ErrorResult();
     } else if (visitedList.contains(this)) {
       // check for circular reference otherwise descend
@@ -38,7 +38,7 @@ class ReferenceType extends FormulaType {
   String toString() => 'ReferenceType{$a1}';
 
   @override
-  String get asFormula => _deletedReference ? '@ERROR' : '$a1';
+  String get asFormula => _isDeleteReference ? '@ERROR' : '$a1';
 
   @override
   void visit(FormulaTypeVisitor callback) {
@@ -56,8 +56,8 @@ class ReferenceType extends FormulaType {
   int get hashCode => a1.hashCode;
 
   void markDeleted() {
-    _deletedReference = true;
+    _isDeleteReference = true;
   }
 
-  bool get isDeleted => _deletedReference;
+  bool get isDeleted => _isDeleteReference;
 }

@@ -13,7 +13,7 @@ class LabelType extends FormulaType {
       LabelResult(label);
 
   @override
-  String get asFormula => label;
+  String get asFormula => '"$label';
 
   @override
   void visit(FormulaTypeVisitor callback) {

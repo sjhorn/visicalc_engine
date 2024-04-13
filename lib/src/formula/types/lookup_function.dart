@@ -3,12 +3,15 @@ import 'package:visicalc_engine/visicalc_engine.dart';
 
 class LookupFunction extends FormulaType {
   final FormulaType? params;
+  bool _isDeleteReference = false;
   LookupFunction(this.params);
 
   @override
   ResultType eval(ResultTypeCache resultCache,
       [List<FormulaType>? visitedList]) {
-    if (params is ListType && (params as ListType).list.isNotEmpty) {
+    if (_isDeleteReference) {
+      return ErrorResult();
+    } else if (params is ListType && (params as ListType).list.isNotEmpty) {
       final paramList = (params as ListType).list;
       visitedList ??= [];
       final lookupNumber =
@@ -48,16 +51,21 @@ class LookupFunction extends FormulaType {
         _ => null,
       };
 
-  List<A1> get dependencies => switch (range) {
+  @override
+  Set<A1> get references => switch (range) {
         ListRangeType(:var isColumnLine) when isColumnLine =>
-          range!.from.right.rangeTo(range!.to.right),
+          range!.from.rangeTo(range!.to.right).toSet(),
         ListRangeType(:var isRowLine) when isRowLine =>
-          range!.from.down.rangeTo(range!.to.down),
-        _ => [],
+          range!.from.rangeTo(range!.to.down).toSet(),
+        _ => {},
       };
 
   @override
   String get asFormula => '@LOOKUP(${params?.asFormula})';
+
+  void markDeleted() {
+    _isDeleteReference = true;
+  }
 
   @override
   void visit(FormulaTypeVisitor callback) {

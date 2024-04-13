@@ -30,6 +30,7 @@ void main() {
     final negop = NegativeOp(NumType(-1));
 
     expect(negop.toString(), equals('NegativeOp(Value{-1})'));
+    expect(negop.hashCode, equals(NegativeOp(NumType(-1)).hashCode));
 
     negop.visit((it) => it == negop ? visited = true : '');
     expect(visited, equals(true));
@@ -106,18 +107,18 @@ void main() {
   });
   test('lookup function type', () async {
     final cache2 = ResultTypeCache({
-      'A1'.a1: NumType(1),
-      'A2'.a1: NumType(2),
-      'B1'.a1: NumType(1),
-      'B2'.a1: NumType(2),
-      'C1'.a1: NumType(1),
-      'C2'.a1: NumType(1),
-      'D1'.a1: NumType(3),
-      'D2'.a1: NumType(2),
-      'E1'.a1: ErrorType(),
-      'E2'.a1: ErrorType(),
-      'F1'.a1: NumType(3),
-      'F2'.a1: NumType(2),
+      'A1'.a1: NumType(1).cell,
+      'A2'.a1: NumType(2).cell,
+      'B1'.a1: NumType(1).cell,
+      'B2'.a1: NumType(2).cell,
+      'C1'.a1: NumType(1).cell,
+      'C2'.a1: NumType(1).cell,
+      'D1'.a1: NumType(3).cell,
+      'D2'.a1: NumType(2).cell,
+      'E1'.a1: ErrorType().cell,
+      'E2'.a1: ErrorType().cell,
+      'F1'.a1: NumType(3).cell,
+      'F2'.a1: NumType(2).cell,
     });
 
     // Column Range
@@ -134,7 +135,7 @@ void main() {
     expect(visited, isTrue);
 
     expect(type.range, equals(colRange));
-    expect(type.dependencies, containsAll(['B1'.a1, 'B2'.a1]));
+    expect(type.references, containsAll({'B1', 'B2'}.a1));
 
     // Row Range
     final rowRange = ListRangeType('C1'.a1, 'D1'.a1);
@@ -150,7 +151,7 @@ void main() {
     expect(visited, isTrue);
 
     expect(type2.range, equals(rowRange));
-    expect(type2.dependencies, containsAll(['C2'.a1, 'D2'.a1]));
+    expect(type2.references, containsAll({'C2', 'D2'}.a1));
 
     // Error in range
     final type3 = LookupFunction(ListType([
@@ -171,7 +172,16 @@ void main() {
       NumType(0),
       ListRangeType('A1'.a1, 'C2'.a1),
     ]));
-    expect(type5.dependencies, equals([]));
+    expect(type5.references, equals(<A1>{}));
+  });
+  test('deleted lookupfunction', () async {
+    // Deleted
+    final type6 = LookupFunction(ListType([
+      NumType(0),
+      ListRangeType('A1'.a1, 'C2'.a1),
+    ]));
+    type6.markDeleted();
+    expect(type6.eval(ResultTypeCache({})), isA<ErrorResult>());
   });
 
   test('list type', () async {
@@ -252,5 +262,14 @@ void main() {
     expect(type.eval(cache), equals(NumberResult(2)));
     type.visit((instance) => instance == type ? visited = true : '');
     expect(visited, isTrue);
+  });
+  test('label type', () {
+    bool visited = false;
+    final type = LabelType('hello');
+    expect(type.asFormula, equals('"hello'));
+    expect(type.eval(cache), equals(LabelResult('hello')));
+    type.visit((instance) => instance == type ? visited = true : '');
+    expect(visited, isTrue);
+    expect(type.hashCode, equals(LabelType('hello').hashCode));
   });
 }
