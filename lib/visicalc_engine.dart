@@ -1,6 +1,16 @@
 /// VisiCalc Engine
 ///
+/// This dart library aims to emulate the behaviour of the VisiCalc
+/// spreadsheet, including cell operations (move,copy, etc.), cell references
+/// and functions.
 ///
+/// The engine also allows reading in a spreadsheet either from a
+/// [Map<A1,String>] or directly from the file format used by the original
+/// app typically saved as .vc files.
+///
+/// The engine relies heavily on the
+/// [PetitParser](https://pub.dev/packages/petitparser) and
+/// [A1 Notation libraries](https://pub.dev/packages/a1).
 ///
 /// **See also:**
 /// * [VisiCalc on Wikipedia](https://en.wikipedia.org/wiki/Spreadsheet#)
@@ -8,6 +18,8 @@
 
 library;
 
+export 'src/formula/grammar/format_expression.dart';
+export 'src/formula/grammar/expression.dart';
 export 'src/formula/grammar/evaluator.dart';
 export 'src/formula/grammar/file_format.dart';
 export 'src/formula/grammar/validate_expression.dart';
@@ -45,7 +57,6 @@ export 'src/model/cell.dart';
 export 'src/model/result_type_cache.dart';
 export 'src/formula/content/expression_content.dart';
 export 'src/formula/content/global_directive_content.dart';
-export 'src/formula/content/label_content.dart';
 export 'src/formula/content/repeating_content.dart';
 export 'src/formula/content/cell_content.dart';
 export 'src/model/cell_format.dart';

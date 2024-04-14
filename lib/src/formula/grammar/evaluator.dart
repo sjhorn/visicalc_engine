@@ -1,28 +1,10 @@
+// Copyright (c) 2024, Scott Horn.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'dart:math';
-
 import 'package:petitparser/petitparser.dart';
-import '../types/brackets_type.dart';
-import '../types/positive_op.dart';
-import '../types/not_available_type.dart';
-import '../types/error_type.dart';
-import '../types/average_function.dart';
-
-import '../types/binary_num_op.dart';
-import '../types/count_function.dart';
-import '../types/formula_type.dart';
-import '../types/list_range_type.dart';
-import '../types/list_type.dart';
-import '../types/lookup_function.dart';
-import '../types/maths_function.dart';
-import '../types/max_function.dart';
-import '../types/min_function.dart';
-import '../types/negative_op.dart';
-import '../types/npv_function.dart';
-import '../types/num_type.dart';
-import '../types/pi_type.dart';
-import '../types/reference_type.dart';
-import '../types/sum_function.dart';
-import 'expression.dart';
+import 'package:visicalc_engine/visicalc_engine.dart';
 
 class Evaluator extends Expression {
   @override
@@ -111,8 +93,8 @@ class Evaluator extends Expression {
       super.brackets().map((value) => BracketsType(value.$2));
 
   @override
-  Parser<FormulaType> left() =>
-      super.left().map((value) => value as FormulaType);
+  Parser<FormulaType> expression() =>
+      super.expression().map((value) => value as FormulaType);
 
   @override
   Parser<FormulaType> additive() => super.additive().map((value) {
@@ -158,4 +140,9 @@ class Evaluator extends Expression {
   @override
   Parser<FormulaType> decimal() =>
       super.decimal().map((value) => NumType(num.parse(value)));
+
+  @override
+  Parser<FormulaType> label() => super.label().map((value) => value.$1 == '"'
+      ? LabelType(value.$2)
+      : LabelType('${value.$1}${value.$2}'));
 }

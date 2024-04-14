@@ -13,6 +13,7 @@ void main() {
       'Z3'.a1: ReferenceType('A1'.a1).cell,
       'C2'.a1: NumType(2).cell,
       'DD3'.a1: ErrorType().cell,
+      'B2'.a1: LabelType('hello').cell,
     };
     FormulaType formula = parser.parse(expression).value;
     ResultType result = formula.eval(ResultTypeCache(variables));
@@ -32,10 +33,22 @@ void main() {
     switch (result) {
       case NumberResult():
         expect(result.value, equals(expected));
+      case LabelResult():
+        expect(result.label, equals(expected));
       default:
     }
   }
 
+  group('label', () {
+    test('label', () async {
+      final p = evaluator.buildFrom(evaluator.label()).end();
+
+      expectEval(p, 'ABC', isA<LabelType>(), isA<LabelResult>(), 'ABC');
+      expect(p.parse('+A1'), isA<Failure>());
+      expect(p.parse('@SUM(DD3)'), isA<Failure>());
+      expect(p.parse('+@PI'), isA<Failure>());
+    });
+  });
   group('number', () {
     test('integer', () async {
       final p = evaluator.buildFrom(evaluator.number()).end();
@@ -108,7 +121,7 @@ void main() {
   });
   group('left', () {
     test('additive', () async {
-      final p = evaluator.buildFrom(evaluator.left()).end();
+      final p = evaluator.buildFrom(evaluator.expression()).end();
       expectEval(p, '12+12', isA<BinaryNumOp>(), isA<NumberResult>(), 24);
       expectEval(p, '12+12+12', isA<BinaryNumOp>(), isA<NumberResult>(), 36);
       expectEval(p, '12+12-12', isA<BinaryNumOp>(), isA<NumberResult>(), 12);
@@ -123,7 +136,7 @@ void main() {
           p, '-12.12-12.12', isA<BinaryNumOp>(), isA<NumberResult>(), -24.24);
     });
     test('multiplicative', () async {
-      final p = evaluator.buildFrom(evaluator.left()).end();
+      final p = evaluator.buildFrom(evaluator.expression()).end();
       expectEval(p, '12*12', isA<BinaryNumOp>(), isA<NumberResult>(), 144);
       expectEval(p, '12/12', isA<BinaryNumOp>(), isA<NumberResult>(), 1);
       expectEval(p, '12/c2', isA<BinaryNumOp>(), isA<NumberResult>(), 6);
@@ -135,7 +148,7 @@ void main() {
 
   group('wrappers', () {
     test('functions', () async {
-      final p = evaluator.buildFrom(evaluator.left()).end();
+      final p = evaluator.buildFrom(evaluator.expression()).end();
       expectEval(p, '@count()', isA<CountFunction>(), isA<NumberResult>(), 0);
       expectEval(p, '@su(12)', isA<ErrorType>(), isA<ErrorResult>(), null);
       expectEval(p, '@sum(12)', isA<SumFunction>(), isA<NumberResult>(), 12);
@@ -176,6 +189,23 @@ void main() {
   });
 
   group('integrated', () {
+    test('label', () async {
+      final p = evaluator.build<FormulaType>();
+
+      expectEval(p, 'ABC', isA<LabelType>(), isA<LabelResult>(), 'ABC');
+      expectEval(p, '123', isA<NumType>(), isA<NumberResult>(), 123);
+      expectEval(p, '"123', isA<LabelType>(), isA<LabelResult>(), '123');
+      expectEval(p, '+A1', isA<PositiveOp>(), isA<NumberResult>(), 12.12e12);
+      expectEval(p, '+B2', isA<PositiveOp>(), isA<LabelResult>(), 'hello');
+      expectEval(
+          p, '"(1+2)*3', isA<LabelType>(), isA<LabelResult>(), '(1+2)*3');
+      expectEval(p, '"@sum(1+2)*3', isA<LabelType>(), isA<LabelResult>(),
+          '@sum(1+2)*3');
+      expectEval(p, '"@sum(1+2)*3', isA<LabelType>(), isA<LabelResult>(),
+          '@sum(1+2)*3');
+      expectEval(p, '"@sum(1+2)*@sum(a1...c2)', isA<LabelType>(),
+          isA<LabelResult>(), '@sum(1+2)*@sum(a1...c2)');
+    });
     test('mix of tests', () async {
       final p = evaluator.build<FormulaType>();
 

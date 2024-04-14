@@ -1,23 +1,46 @@
+// Copyright (c) 2024, Scott Horn.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'package:petitparser/petitparser.dart';
+import 'package:visicalc_engine/visicalc_engine.dart';
 
-import 'expression.dart';
-
+/// A1CursorKind determines if we end in an [A1Partial] then
+/// where does it start in the string.
+///
+/// none - end is not an A1Partial
+/// end - the end is the starting position for an A1Partial
+/// offset - the A1Partial begins at offset in the string
 enum A1CursorKind { none, end, offset }
 
+/// A1Cursor is a utility for helping stor information about the
+/// current VisiCalc [Expression]
 class A1Cursor {
+  /// [A1CursorKind] either none, offset or end
   final A1CursorKind kind;
+
+  /// If [A1CursorKind] is offset this is the offset, otherwise null
   final int? offset;
+
+  /// A bool to indicate if we are current inside a function
   final bool inFunction;
 
+  // Private Constructor
   A1Cursor._(this.kind, [this.offset, this.inFunction = false]);
 
+  /// An A1Cursor that is not in an A1Partial
   factory A1Cursor.none() => A1Cursor._(A1CursorKind.none);
+
+  /// An A1Cursor which has the A1Partial beginngin at the end
   factory A1Cursor.end([bool inFunction = false]) =>
       A1Cursor._(A1CursorKind.end, null, inFunction);
+
+  /// An A1Cursor then begisn at offset
   factory A1Cursor.offset(int offset, [bool inFunction = false]) => offset == 0
       ? A1Cursor.end(inFunction)
       : A1Cursor._(A1CursorKind.offset, offset, inFunction);
 
+  /// Help debugging this A1Cursor
   @override
   String toString() => switch (kind) {
         A1CursorKind.offset => '${kind.name}(offset: $offset)',
@@ -34,6 +57,7 @@ class A1Cursor {
   @override
   int get hashCode => kind.hashCode ^ offset.hashCode ^ inFunction.hashCode;
 
+  /// Utility for copying some of the features to a new A1Cursor
   A1Cursor copyWith({
     A1CursorKind? kind,
     int? offset,
@@ -47,6 +71,9 @@ class A1Cursor {
   }
 }
 
+/// This Grammar helps validate partial VisiCalc [Expression] to assist
+/// an input UI in validation and position the cursor if moving around
+/// in a spreadsheet and need to swap the [A1] value
 class ValidateExpression extends Expression {
   @override
   Parser<A1Cursor> start() => super.start().map((value) => value);

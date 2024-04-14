@@ -96,7 +96,7 @@ void main() {
     });
 
     test('left', () async {
-      final parser = validation.buildFrom(validation.left()).end();
+      final parser = validation.buildFrom(validation.expression()).end();
 
       expect(parser.parse('1+2').value, noCursor);
       expect(parser.parse('+1+2').value, noCursor);
@@ -259,7 +259,7 @@ void main() {
     });
 
     test('left', () async {
-      final parser = validation.buildFrom(validation.left()).end();
+      final parser = validation.buildFrom(validation.expression()).end();
 
       expect(parser.parse('1+').value, endCursor);
       expect(parser.parse('123-').value, endCursor);
@@ -339,7 +339,8 @@ void main() {
   group('full expression', () {
     final parser = ValidateExpression().build();
     test(' methods', () {
-      expect(parser.parse('A1+@SUM(B2,A33)+@AVG(V4,@SUM(123)').value, noCursor);
+      expect(
+          parser.parse('+A1+@SUM(B2,A33)+@AVG(V4,@SUM(123)').value, noCursor);
     });
   });
 

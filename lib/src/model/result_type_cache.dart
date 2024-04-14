@@ -1,5 +1,4 @@
 import 'package:a1/a1.dart';
-
 import 'package:visicalc_engine/visicalc_engine.dart';
 
 typedef EvalCallback = ResultType Function(A1 cell, ResultTypeCache map);

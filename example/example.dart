@@ -9,14 +9,14 @@ void main(List<String> arguments) {
     'A4'.a1: '+A2+A5-A6',
     'A5'.a1: '-A3/2+2',
     'A6'.a1: '/F\$.23*2',
-    'B1'.a1: 'A1+A3*3',
+    'B1'.a1: '+A1+A3*3',
     'B2'.a1: '(A1+A3)*3',
     'B3'.a1: '12.23e-12',
     'B4'.a1: '.23e12',
     'B5'.a1: '/FRb4',
-    'B6'.a1: 'b2',
+    'B6'.a1: '+b2',
     'B7'.a1: '@sum(a1...b6)',
-    'D13'.a1: 'b2',
+    'D13'.a1: '+b2',
   };
   final worksheet = Engine(sheet, parseErrorThrows: true);
   print(worksheet);
@@ -25,7 +25,7 @@ void main(List<String> arguments) {
   var b5 = worksheet["B5".a1];
   print('B5 formula was ${b5?.formulaType?.asFormula} = $b5');
   print('Now setting B5 to formula a1');
-  worksheet['B5'.a1] = 'a1';
+  worksheet['B5'.a1] = '+a1';
 
   b5 = worksheet["B5".a1];
   print('Now B5 formula is ${b5?.formulaType?.asFormula} = $b5');

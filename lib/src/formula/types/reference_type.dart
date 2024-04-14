@@ -49,6 +49,10 @@ class ReferenceType extends FormulaType {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
 
+    if (other is PositiveOp) {
+      return other.value == this;
+    }
+
     return other is ReferenceType && other.a1 == a1;
   }
 

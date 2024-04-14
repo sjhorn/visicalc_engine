@@ -8,7 +8,7 @@ class PositiveOp extends FormulaType {
   ResultType eval(ResultTypeCache resultCache,
       [List<FormulaType>? visitedList]) {
     visitedList ??= [];
-    final valueResult = value.eval(resultCache, [...visitedList, this]);
+    final valueResult = value.eval(resultCache, [...visitedList]);
     if (valueResult is! NumberResult) {
       return valueResult;
     }
@@ -26,4 +26,18 @@ class PositiveOp extends FormulaType {
     callback(this);
     value.visit(callback);
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    if (other is FormulaType && other is! PositiveOp) {
+      return other == value;
+    }
+
+    return other is PositiveOp && other.value == value;
+  }
+
+  @override
+  int get hashCode => value.hashCode;
 }

@@ -39,7 +39,9 @@ class NumType extends FormulaType {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-
+    if (other is PositiveOp) {
+      return other.value == this;
+    }
     return other is NumType && other.value == value;
   }
 

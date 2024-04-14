@@ -1,3 +1,4 @@
+import 'package:petitparser/petitparser.dart';
 import 'package:test/test.dart';
 
 import 'package:visicalc_engine/visicalc_engine.dart';
@@ -6,7 +7,11 @@ void main() {
   final evaluator = Evaluator();
 
   String parseAsFormula(String expression) {
-    FormulaType formula = evaluator.build().parse(expression).value;
+    FormulaType formula = evaluator
+        .buildFrom(evaluator.expressionWithList())
+        .end()
+        .parse(expression)
+        .value;
     return formula.asFormula;
   }
 

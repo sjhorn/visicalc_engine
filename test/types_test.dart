@@ -19,11 +19,16 @@ void main() {
 
   test('positiveop type', () async {
     bool visited = false;
-    final op = PositiveOp(NumType(-1));
+    final number = NumType(-1);
+    final op = PositiveOp(number);
     expect(op.toString(), equals('PositiveOp(Value{-1})'));
 
     op.visit((it) => it == op ? visited = true : '');
     expect(visited, equals(true));
+    expect(op, equals(number));
+    expect(number, equals(op));
+    expect(op, equals(op));
+    expect(PositiveOp(number), equals(op));
   });
   test('negativeop type', () async {
     bool visited = false;

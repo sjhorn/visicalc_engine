@@ -65,7 +65,7 @@ void main() {
     setUp(() {
       sheet = {
         'A1'.a1: ReferenceType('B2'.a1).cell,
-        'A2'.a1: Cell(content: LabelContent('test')),
+        'A2'.a1: Cell(content: RepeatingContent('>>')),
         'B2'.a1: NumType(23).cell,
         'C3'.a1: BinaryNumOp(
           '+',

@@ -1,22 +1,39 @@
-import 'dart:math';
+// Copyright (c) 2024, Scott Horn.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
+import 'dart:math';
 import 'package:visicalc_engine/visicalc_engine.dart';
 
+/// Cell class holds all the details for a cell in a spreadsheet
+///
+/// This includesl the [CellContent] content which could be a Expression
+/// [ExpressionContent] or Repeating Character eg. ==== [RepeatingContent]
+///
 class Cell {
+  /// [CellContent] for this cell
   final CellContent? content;
-  final CellFormat? format;
+
+  /// [CellFormat] for this cell
+  late final CellFormat format;
+
   ResultTypeCache? Function()? resultTypeCacheFunc;
   ResultTypeCache? get resultTypeCache => resultTypeCacheFunc?.call();
+
   FormulaType? _formulaType;
 
-  Cell({this.content, this.format, this.resultTypeCacheFunc});
+  /// Construct a cell from its content [CellContent], options format [CellFormat]
+  /// and function for retrieive the [ResultTypeCache]
+  Cell({this.content, CellFormat? format, this.resultTypeCacheFunc}) {
+    this.format = format ?? CellFormat.defaultFormat;
+  }
 
+  /// Create a cell directly from a [FormulaType]
   factory Cell.fromFormulaType(FormulaType formulaType) =>
       Cell(content: ExpressionContent(formulaType));
 
   FormulaType? get formulaType {
     _formulaType ??= switch (content) {
-      LabelContent(:var label) => LabelType(label),
       ExpressionContent(:var formulaType) => formulaType,
       _ => null,
     };
@@ -27,12 +44,10 @@ class Cell {
         ExpressionContent(:var formulaType) => resultTypeCache == null
             ? formulaType.eval(ResultTypeCache({}))
             : formulaType.eval(resultTypeCache!),
-        LabelContent(:var label) => LabelResult(label),
         _ => null,
       };
 
   String get contentString => switch (content) {
-        LabelContent(:var label) => label,
         ExpressionContent() => formulaType?.asFormula ?? '',
         GlobalDirectiveContent(:var directive) => directive,
         RepeatingContent(:var pattern) => pattern,
@@ -47,8 +62,7 @@ class Cell {
     return switch ((content, formatApplied)) {
       (ExpressionContent(), _) => switch (format) {
           CellFormat.general ||
-          CellFormat.left ||
-          null =>
+          CellFormat.left =>
             _cellStringLeft(resultString, columnWidth),
           CellFormat.right => _cellStringRight(resultString, columnWidth),
           CellFormat.dollars => resultType!.dollarFormat(columnWidth),
@@ -56,9 +70,6 @@ class Cell {
           CellFormat.integer => resultType!.integer(columnWidth),
         },
       (RepeatingContent(:var pattern), _) => ''.padLeft(columnWidth, pattern),
-      (_, CellFormat.right) => contentString
-          .substring(0, min(contentString.length, columnWidth))
-          .padLeft(columnWidth),
       _ => contentString
           .substring(0, min(contentString.length, columnWidth))
           .padRight(columnWidth),

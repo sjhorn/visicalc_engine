@@ -1,5 +1,6 @@
 import 'package:a1/a1.dart';
 import 'package:test/test.dart';
+import 'package:visicalc_engine/src/model/cell_change_type.dart';
 import 'package:visicalc_engine/visicalc_engine.dart';
 
 void main() {
@@ -11,12 +12,12 @@ void main() {
       'A4'.a1: '+A2+A5-A6',
       'A5'.a1: '-A3/2+2',
       'A6'.a1: '.23*2',
-      'B1'.a1: 'A1+A3*3',
+      'B1'.a1: '+A1+A3*3',
       'B2'.a1: '(A1+A3)*3',
       'B3'.a1: '12.23e-12',
       'B4'.a1: '.23e12',
-      'B5'.a1: 'b4',
-      'B6'.a1: 'b2',
+      'B5'.a1: '+b4',
+      'B6'.a1: '+b2',
       'B7'.a1: '@sum(a1...b6)',
       'B8'.a1: '"This is a label',
     };
@@ -62,7 +63,7 @@ void main() {
       expect(engine['B1'.a1]!.resultType, equals(NumberResult(26.8)));
     });
     test(' - reference', () async {
-      expect(engine['B5'.a1]!.formulaType, isA<ReferenceType>());
+      expect(engine['B5'.a1]!.formulaType, isA<PositiveOp>());
       expect(engine['B5'.a1]!.resultType, equals(NumberResult(.23e12)));
     });
     test(' - function', () async {
@@ -83,12 +84,12 @@ void main() {
       'A4'.a1: '+A2+A5-A6',
       'A5'.a1: '-A3/2+2',
       'A6'.a1: '.23*2',
-      'B1'.a1: 'A1+A3*3',
+      'B1'.a1: '+A1+A3*3',
       'B2'.a1: '(A1+A3)*3',
       'B3'.a1: '12.23e-12',
       'B4'.a1: '.23e12',
-      'B5'.a1: 'b4',
-      'B6'.a1: 'b2',
+      'B5'.a1: '+b4',
+      'B6'.a1: '+b2',
       'B7'.a1: '@sum(a1...b6)',
     };
     Engine engine = Engine({});
@@ -153,19 +154,46 @@ void main() {
       'A4'.a1: '+A2+A5-A6',
       'A5'.a1: '-A3/2+2',
       'A6'.a1: '.23*2',
-      'B1'.a1: 'A1+A3*3',
+      'B1'.a1: '+A1+A3*3',
       'B2'.a1: '(A1+A3)*3',
       'B3'.a1: '12.23e-12',
       'B4'.a1: '.23e12',
-      'B5'.a1: 'b4',
-      'B6'.a1: 'b2',
+      'B5'.a1: '+b4',
+      'B6'.a1: '+b2',
       'B7'.a1: '@sum(b1...b6)',
+      'B8'.a1: '/-=',
     };
     Engine engine = Engine({});
     setUp(() {
       engine = Engine(sheet);
     });
-    test(' - moving a cell to empty cell', () async {
+    test(' - moving a repeating cell to empty cell', () async {
+      final origin = 'b8'.a1;
+      final destination = 'c1'.a1;
+
+      expect(engine[origin]?.formulaType?.asFormula, isNull);
+      expect(engine[origin]?.resultType, isNull);
+      expect(engine.referencesTo(origin), isNull);
+
+      expect(engine[destination]?.formulaType, isNull);
+      expect(engine[destination]?.resultType, isNull);
+      expect(engine.referencesTo(destination), isNull);
+
+      engine.move(origin, destination);
+
+      expect(engine[origin]?.formulaType, isNull);
+      expect(engine[origin]?.resultType, isNull);
+      expect(engine.referencesTo(origin), isNull);
+
+      expect(engine[destination]?.formulaType, isNull);
+      expect(engine[destination]?.resultType, isNull);
+      expect(engine.referencesTo(destination), isNull);
+      expect(engine[destination], isA<Cell>());
+      expect(engine[destination]?.content, isA<RepeatingContent>());
+      expect((engine[destination]?.content as RepeatingContent).pattern,
+          equals('='));
+    });
+    test(' - moving an expression cell to empty cell', () async {
       final origin = 'a2'.a1;
       final destination = 'c1'.a1;
 
@@ -335,12 +363,12 @@ void main() {
       'A4'.a1: '+A2+A5-A6',
       'A5'.a1: '-A3/2+2',
       'A6'.a1: '.23*2',
-      'B1'.a1: 'A1+A3*3',
+      'B1'.a1: '+A1+A3*3',
       'B2'.a1: '(A1+A3)*3',
       'B3'.a1: '12.23e-12',
       'B4'.a1: '.12345678901234e-7',
-      'B5'.a1: 'b4',
-      'B6'.a1: 'b2',
+      'B5'.a1: '+b4',
+      'B6'.a1: '+b2',
       'B7'.a1: '@sum(b1...b6)',
     };
     Engine engine = Engine({});
@@ -399,8 +427,8 @@ void main() {
       expect(engine['A2'.a1]?.resultType, isA<ErrorResult>());
       expect(engine['A3'.a1]?.formulaType?.asFormula, equals('1.223e-11'));
       expect(engine['A4'.a1]?.formulaType?.asFormula, equals('1.23457e-8'));
-      expect(engine['A5'.a1]?.formulaType?.asFormula, equals('A4'));
-      expect(engine['A6'.a1]?.formulaType?.asFormula, equals('A2'));
+      expect(engine['A5'.a1]?.formulaType?.asFormula, equals('+A4'));
+      expect(engine['A6'.a1]?.formulaType?.asFormula, equals('+A2'));
       expect(engine['A7'.a1]?.formulaType?.asFormula, isNull);
       expect(engine['B7'.a1]?.formulaType?.asFormula, equals('@SUM(A1...A6)'));
 
@@ -461,7 +489,7 @@ void main() {
       expect(engine['B2'.a1]?.formulaType?.asFormula, isNull);
 
       expect(engine['A3'.a1]?.formulaType?.asFormula, equals('13'));
-      expect(engine['B5'.a1]?.formulaType?.asFormula, equals('B4'));
+      expect(engine['B5'.a1]?.formulaType?.asFormula, equals('+B4'));
     });
     test(' - delete columns', () async {
       engine.deleteColumns(0);
@@ -488,7 +516,7 @@ void main() {
       expect(engine['C2'.a1]?.formulaType?.asFormula, isNull);
       expect(engine['C6'.a1]?.formulaType?.asFormula, isNull);
 
-      expect(engine['D1'.a1]?.formulaType?.asFormula, equals('A1+A3*3'));
+      expect(engine['D1'.a1]?.formulaType?.asFormula, equals('+A1+A3*3'));
       expect(engine['D7'.a1]?.formulaType?.asFormula, equals('@SUM(D1...D6)'));
 
       expect(engine['D1'.a1]?.resultType, isA<NumberResult>());
@@ -516,11 +544,18 @@ void main() {
     });
   });
   group('misc methods', () {
-    final engine = Engine({
-      'A1'.a1: 'A2',
-      'A2'.a1: '12',
-      'A3'.a1: '/-=',
-    }, parseErrorThrows: true);
+    Engine engine = Engine({});
+    setUp(() {
+      engine = Engine({
+        'A1'.a1: '+A2',
+        'A2'.a1: '12',
+        'A3'.a1: '/-=',
+      }, parseErrorThrows: true);
+    });
+    test(' - insert a null to delete', () async {
+      engine['A1'.a1] = null;
+      expect(engine['A1'.a1], isNull);
+    });
     test(' - columnsAndRows', () async {
       expect(
           engine.columnsAndRows(criteria: (a1) => false).$1, equals(<int>[]));
@@ -535,7 +570,7 @@ void main() {
           engine.toString(),
           equals('          A fx           |          A           | \n'
               '------------------------------------------------\n'
-              ' 1  A2                   | 12                   | \n'
+              ' 1  +A2                  | 12                   | \n'
               ' 2  12                   | 12                   | \n'
               ' 3  =                    | ==================== | \n'
               ''));

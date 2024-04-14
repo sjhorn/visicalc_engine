@@ -31,13 +31,13 @@ void main() {
         final ast = parser.parse(src);
         return (
           ast.value.key,
-          ast.value.value.format?.toChar,
+          ast.value.value.format.toChar,
           ast.value.value.content
         );
       }
 
       expect(parseString('>A9:/FR"TRUE'),
-          equals(('A9'.a1, 'R', LabelContent('TRUE'))));
+          equals(('A9'.a1, 'R', ExpressionContent(LabelType('TRUE')))));
       expect(parseString('>G9:/-='),
           equals(('G9'.a1, null, RepeatingContent('='))));
       expect(parseString('>G8:+F8*10'),
@@ -45,13 +45,13 @@ void main() {
       expect(parseString('>F8:+F7+1'),
           equals(('F8'.a1, null, ExpressionContent.fromString('+F7+1'))));
       expect(parseString('>E8:"tes'),
-          equals(('E8'.a1, null, LabelContent('tes'))));
+          equals(('E8'.a1, null, ExpressionContent(LabelType('tes')))));
       expect(
           parseString('>B8:@SUM(A2...A7)'),
           equals(
               ('B8'.a1, null, ExpressionContent.fromString('@SUM(A2...A7)'))));
       expect(parseString('>A8:/FR"label'),
-          equals(('A8'.a1, 'R', LabelContent('label'))));
+          equals(('A8'.a1, 'R', ExpressionContent(LabelType('label')))));
       expect(parseString('>A10:/-='),
           equals(('A10'.a1, null, RepeatingContent('='))));
     });
@@ -67,7 +67,6 @@ void main() {
     });
 
     test('hashCodes', () async {
-      expect(LabelContent('test').hashCode, LabelContent('test').hashCode);
       expect(
         ExpressionContent.fromString('+A1').hashCode,
         ExpressionContent.fromString('+A1').hashCode,
