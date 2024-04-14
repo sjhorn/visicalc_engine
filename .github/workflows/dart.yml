@@ -38,4 +38,9 @@ jobs:
           dart pub global activate coverage
           dart pub global run coverage:test_with_coverage
       - name: "Upload coverage"
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
+        with:
+          fail_ci_if_error: true
+          verbose: true
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
