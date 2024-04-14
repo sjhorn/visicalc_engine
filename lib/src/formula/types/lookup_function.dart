@@ -52,12 +52,20 @@ class LookupFunction extends FormulaType {
       };
 
   @override
-  Set<A1> get references => switch (range) {
-        ListRangeType(:var isColumnLine) when isColumnLine =>
-          range!.from.rangeTo(range!.to.right).toSet(),
-        ListRangeType(:var isRowLine) when isRowLine =>
-          range!.from.rangeTo(range!.to.down).toSet(),
-        _ => {},
+  Set<A1> get references {
+    Set<A1> rangeRefs = switch (range) {
+      ListRangeType(:var isColumnLine) when isColumnLine =>
+        range!.from.rangeTo(range!.to.right).toSet(),
+      ListRangeType(:var isRowLine) when isRowLine =>
+        range!.from.rangeTo(range!.to.down).toSet(),
+      _ => {},
+    };
+    return {...rangeRefs, ...(lookup?.references ?? {})};
+  }
+
+  FormulaType? get lookup => switch (params) {
+        ListType(:var list) when list.length == 2 => list.first,
+        _ => null,
       };
 
   @override

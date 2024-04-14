@@ -30,4 +30,21 @@ void main(List<String> arguments) {
   b5 = worksheet["B5".a1];
   print('Now B5 formula is ${b5?.formulaType?.asFormula} = $b5');
   print(worksheet);
+
+  // .vc file example
+  final fileContents = '''\
+>A1:/FL"TRUE\r
+>A2:+B5*10\r
+>A3:+B3+1\r
+>A4:"tes\r
+>A5:@SUM(B2...B5)\r
+>B1:/FR"label\r
+>B2:123\r
+>B3:@PI\r
+>B4:+B3\r
+>B5:.23*2\r
+\u0000''';
+  print('Parsing an example of a VisiCalc .vc file format');
+  final engine = Engine.fromFileContents(fileContents);
+  print(engine);
 }

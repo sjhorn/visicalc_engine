@@ -6,15 +6,17 @@ void main() {
   final cache = ResultTypeCache({});
   test('reference type', () async {
     final ref = ReferenceType('A1'.a1);
-
+    expect(ref.hashCode, equals('A1'.a1.hashCode));
     expect(ref.toString(), equals('ReferenceType{A1}'));
     expect(ref.eval(cache), isA<EmptyResult>());
 
     expect(ref.eval(cache, [ref]), isA<NotAvailableResult>());
 
+    ref.moveTo('A2'.a1);
+    expect(ref.a1, equals('a2'.a1));
+
     ref.markDeleted();
     expect(ref.eval(cache), isA<ErrorResult>());
-    expect(ref.hashCode, equals('A1'.a1.hashCode));
   });
 
   test('positiveop type', () async {
@@ -276,5 +278,12 @@ void main() {
     type.visit((instance) => instance == type ? visited = true : '');
     expect(visited, isTrue);
     expect(type.hashCode, equals(LabelType('hello').hashCode));
+  });
+  test('references', () {
+    final type = ReferenceType('A1'.a1);
+    expect(type.references, containsAll({'A1'}.a1));
+    final type2 = LookupFunction(
+        ListType([ReferenceType('A1'.a1), ListRangeType('B1'.a1, 'B2'.a1)]));
+    expect(type2.references, containsAll({'A1', 'B1', 'B2', 'C1', 'C2'}.a1));
   });
 }

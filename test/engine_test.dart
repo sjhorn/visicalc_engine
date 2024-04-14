@@ -581,5 +581,31 @@ void main() {
         equals('A2: {A1}            \n'),
       );
     });
+    test(' - .vc file format', () async {
+      final fileContents = '''\
+>A1:/FL"TRUE\r
+>A2:+B5*10\r
+>A3:+B3+1\r
+>A4:"tes\r
+>A5:@SUM(B2...B5)\r
+>B1:/FR"label\r
+>B2:123\r
+>B3:@PI\r
+>B4:+B3\r
+>B5:.23*2\r
+/GRA\r
+\u0000''';
+      final engine =
+          Engine.fromFileContents(fileContents, parseErrorThrows: true);
+      expect(engine['B3'.a1]?.formulaType?.asFormula, equals('@PI'));
+      expect(engine['A4'.a1]?.contentString, equals('"tes'));
+      expect(engine['A5'.a1]?.resultString, equals('129.7431853072'));
+      expect(engine.globalDirectives, contains(GlobalDirectiveContent('GRA')));
+    });
+  });
+  test(' - .vc file format throws exception', () async {
+    final fileContents = '//GCA';
+    expect(() => Engine.fromFileContents(fileContents, parseErrorThrows: true),
+        throwsA(isA<FormatException>()));
   });
 }

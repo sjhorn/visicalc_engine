@@ -14,7 +14,7 @@ import 'package:visicalc_engine/visicalc_engine.dart';
 class FileFormat extends FormatExpression {
   @override
   Parser start() => [
-        cellContent(),
+        cellPositionExpression(),
         globalDirective(),
       ].toChoiceParser().end();
 

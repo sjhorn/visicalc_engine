@@ -18,12 +18,14 @@ typedef CellChangedCallback = void Function(
 
 class Engine with Iterable<A1> {
   static final _formatExpression = FormatExpression().build();
+  static final _fileFormat = FileFormat().build();
   final HashSet<CellChangedCallback> _listeners =
       HashSet<CellChangedCallback>();
   late final Map<A1, Cell> _cellMap;
   late final ResultTypeCache _resultTypeCache;
   final CellReferenceTracker _referencesToCell = CellReferenceTracker();
   final bool _parseErrorThrows;
+  final List<GlobalDirectiveContent> globalDirectives = [];
 
   /// Constructing / parsing cells from a sheet of [Map] of [A1] keys and
   /// [String] values.
@@ -58,6 +60,42 @@ class Engine with Iterable<A1> {
       : _parseErrorThrows = parseErrorThrows {
     _cellMap = _parseSheet(sheet);
     _resultTypeCache = ResultTypeCache(_cellMap);
+  }
+
+  /// Create the engine/spreadsheet from file contents
+  ///
+  /// 'parseErrorThrows' is a boolean parameter that will cause parsing
+  /// to throw a [FormatException] if there is an error parsing the file
+  ///
+  /// Example:
+  /// ```dart
+  /// final fileContents = File.readTextSync();
+  /// final engine = Engine.fromFileContents(fileContents);
+  /// ```
+  factory Engine.fromFileContents(String fileContents,
+      {bool parseErrorThrows = false}) {
+    const lineSeparator = '\r\n';
+    final engine = Engine({});
+    for (final line in fileContents.split(lineSeparator)) {
+      if (line.isNotEmpty && line.codeUnits.first == 0) break;
+      final result = _fileFormat.parse(line);
+      if (result is! Success) {
+        if (parseErrorThrows) {
+          throw FormatException('Error parsing [$line]] - ${result.message}');
+        } else {
+          continue;
+        }
+      }
+
+      switch (result.value) {
+        case MapEntry<A1, Cell>(:var key, :var value):
+          value.resultTypeCacheFunc = () => engine._resultTypeCache;
+          engine._setCell(key, value);
+        case GlobalDirectiveContent():
+          engine.globalDirectives.add(result.value);
+      }
+    }
+    return engine;
   }
 
   Map<A1, Cell> _parseSheet(Map<A1, String> sheet) {
@@ -147,25 +185,27 @@ class Engine with Iterable<A1> {
   /// engine['a2'.a1] = '1+4'; // 5
   /// ```
   ///
-  void operator []=(A1 key, String? cell) {
+  void operator []=(A1 key, String? contents) {
     if (_cellMap.containsKey(key)) {
       _resultTypeCache.removeAll({key});
       _removeReferences(key);
       _notifyListeners({key}, CellChangeType.delete);
     }
 
-    if (cell != null && cell.isNotEmpty) {
-      final formulaType = _parse(cell);
-
-      // Clear the cache for cells that depend on this cell
-      _resultTypeCache.removeAll(_referencesToCell[key]);
-
-      _cellMap[key] = formulaType;
-      _notifyListeners({key}, CellChangeType.add);
-      _addReferences(key, formulaType);
+    if (contents != null && contents.isNotEmpty) {
+      _setCell(key, _parse(contents));
     } else {
       remove(key);
     }
+  }
+
+  void _setCell(A1 key, Cell cell) {
+    // Clear the cache for cells that depend on this cell
+    _resultTypeCache.removeAll(_referencesToCell[key]);
+
+    _cellMap[key] = cell;
+    _notifyListeners({key}, CellChangeType.add);
+    _addReferences(key, cell);
   }
 
   /// This function clears all the cells in the engine
