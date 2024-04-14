@@ -19,6 +19,7 @@ typedef CellChangedCallback = void Function(
 class Engine with Iterable<A1> {
   static final _formatExpression = FormatExpression().build();
   static final _fileFormat = FileFormat().build();
+  static final _validator = ValidateExpression().build<A1Cursor>();
   final HashSet<CellChangedCallback> _listeners =
       HashSet<CellChangedCallback>();
   late final Map<A1, Cell> _cellMap;
@@ -96,6 +97,35 @@ class Engine with Iterable<A1> {
       }
     }
     return engine;
+  }
+
+  /// validateExpression aims to validate a text expression
+  ///
+  /// Returns a record:
+  /// [String] of validated text
+  /// [int] Position of the start of an A1 or the end of string
+  /// [bool] on whether the cursor is inside a function
+  ///
+  static (String, int, bool) validateExpression(String text) {
+    final result = _validator.parse(text);
+    String newString = text;
+    int insertPosition = 0;
+    bool inFunction = false;
+    if (result is Failure) {
+      newString = text.substring(0, max(0, result.position));
+      insertPosition = result.position;
+      inFunction = false;
+    } else {
+      inFunction = result.value.inFunction;
+      A1Cursor cursor = result.value;
+      int length = text.length;
+      if (cursor.kind == A1CursorKind.offset) {
+        insertPosition = length - cursor.offset!;
+      } else {
+        insertPosition = length;
+      }
+    }
+    return (newString, insertPosition, inFunction);
   }
 
   Map<A1, Cell> _parseSheet(Map<A1, String> sheet) {

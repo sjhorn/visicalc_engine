@@ -355,4 +355,44 @@ void main() {
       expect(a1c.copyWith(kind: A1CursorKind.end), equals(a1c));
     });
   });
+  group('Engine validateExpresssion', () {
+    test(' simple reference', () {
+      final (validString, offset, inFunction) =
+          Engine.validateExpression('+A1');
+
+      expect(validString, equals('+A1'));
+      expect(offset, equals(1));
+      expect(inFunction, false);
+    });
+    test(' simple partial', () {
+      final (validString, offset, inFunction) = Engine.validateExpression('+A');
+
+      expect(validString, equals('+A'));
+      expect(offset, equals(1));
+      expect(inFunction, false);
+    });
+    test(' simple partial', () {
+      final (validString, offset, inFunction) = Engine.validateExpression('+A');
+
+      expect(validString, equals('+A'));
+      expect(offset, equals(1));
+      expect(inFunction, false);
+    });
+    test(' invalid end', () {
+      final (validString, offset, inFunction) =
+          Engine.validateExpression('+A1+B)A');
+
+      expect(validString, equals('+A1'));
+      expect(offset, equals(3));
+      expect(inFunction, false);
+    });
+    test(' in function', () {
+      final (validString, offset, inFunction) =
+          Engine.validateExpression('+A1+@SUM(');
+
+      expect(validString, equals('+A1+@SUM('));
+      expect(offset, equals(9));
+      expect(inFunction, true);
+    });
+  });
 }
