@@ -1,9 +1,9 @@
 name: visicalc_engine
-version: 1.0.0
+version: 1.0.1
 
 homepage: https://pub.dev/packages/visicalc_engine
 repository: https://github.com/sjhorn/visicalc_engine
-description: A clone of the visicalc spreadsheet engine in dart
+description: A clone of the visicalc spreadsheet engine in dart library for education use and UI foundation
 screenshots:
   - description: 'A1 logo for A1 Notation'
     path: assets/visicalc_engine.png

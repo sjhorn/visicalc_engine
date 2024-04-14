@@ -9,7 +9,7 @@
 
 This package implements a clone of the VisiCalc spreadsheet engine in a dart library that works by parsing the strings of cells (Map<A1,String>) and calculating the result considering references to other cells.
 
-The screenshot below shows the original user interface of Visicalc made by [Dan Bricklin and Bob Frankston](http://danbricklin.com/visicalc.htm).
+The screenshot below shows the original user interface of Visicalc made by [Dan Bricklin and Bob Frankston](https://danbricklin.com/visicalc.htm).
 ![VisiCalc Logo from Wikipedia](https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Visicalc_logo.svg/320px-Visicalc_logo.svg.png)
 ![VisiCalc Spreadsheet User Interface](https://upload.wikimedia.org/wikipedia/commons/7/7a/Visicalc.png)
 
@@ -20,7 +20,7 @@ From [wikipedia](https://en.wikipedia.org/wiki/VisiCalc)
 
 ## Features
 
- - Supports the calculation and reference language from VisiCalc explained in the [reference card](http://www.bricklin.com/history/refcard1.htm)
+ - Supports the calculation and reference language from VisiCalc explained in the [reference card](https://www.bricklin.com/history/refcard1.htm)
 
  ![Reference Card](https://raw.github.com/sjhorn/visicalc_engine/main/assets/refcard.png)
 
