@@ -7,7 +7,6 @@ import 'dart:math';
 
 import 'package:a1/a1.dart';
 import 'package:petitparser/petitparser.dart';
-import 'package:visicalc_engine/src/formula/grammar/format_expression.dart';
 import 'package:visicalc_engine/src/model/cell_change_type.dart';
 import 'package:visicalc_engine/visicalc_engine.dart';
 
