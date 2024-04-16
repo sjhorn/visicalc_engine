@@ -33,7 +33,7 @@ import 'package:a1/a1.dart';
 import 'package:visicalc_engine/visicalc_engine.dart';
 
 void main(List<String> arguments) {
-  final sheet = {
+   final sheet = {
     'A1'.a1: '/FR-12.2',
     'A2'.a1: '(a5+45)',
     'A3'.a1: '/F*13',
@@ -49,7 +49,7 @@ void main(List<String> arguments) {
     'B7'.a1: '@sum(a1...b6)',
     'D13'.a1: '+b2',
   };
-  final worksheet = Engine(sheet, parseErrorThrows: true);
+  final worksheet = Engine.fromMap(sheet, parseErrorThrows: true);
   print(worksheet);
 
   // Change cell
@@ -61,6 +61,7 @@ void main(List<String> arguments) {
   b5 = worksheet["B5".a1];
   print('Now B5 formula is ${b5?.formulaType?.asFormula} = $b5');
   print(worksheet);
+  print('Output to a .vc file\n: ${worksheet.toFileContents()}');
 
   // .vc file example
   final fileContents = '''\
@@ -83,7 +84,7 @@ void main(List<String> arguments) {
 
 The result looks as follows:
 ```
-          A fx           |          A           |       B fx           |          B           |       C fx           |          C           |       D fx           |          D           | 
+         A fx           |          A           |       B fx           |          B           |       C fx           |          C           |       D fx           |          D           | 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
  1  -12.2                |                -12.2 | +A1+A3*3             | 26.8                 |                      |                      |                      |                      | 
  2  (A5+45)              | 40.5                 | (A1+A3)*3            | 2.4                  |                      |                      |                      |                      | 
@@ -118,6 +119,22 @@ Now B5 formula is +A1 = -12.2
 12                       |                      |                      |                      |                      |                      |                      |                      | 
 13                       |                      |                      |                      |                      |                      | +B2                  | 2.4                  | 
 
+Output to a .vc file
+: >D13:+B2
+>B7:@SUM(A1...B6)
+>B6:+B2
+>A6:/F$0.23*2
+>B5:+A1
+>A5:-A3/2+2
+>B4:230000000000
+>A4:+A2+A5-A6
+>B3:1.223e-11
+>A3:/F*13
+>B2:(A1+A3)*3
+>A2:(A5+45)
+>B1:+A1+A3*3
+>A1:/FR-12.2
+
 Parsing an example of a VisiCalc .vc file format
           A fx           |          A           |       B fx           |          B           | 
 -----------------------------------------------------------------------------------------------
@@ -129,7 +146,7 @@ Parsing an example of a VisiCalc .vc file format
 ```
 
 
-The `test/` directory explores other use cases for the A1 types and library.
+The `test/` directory explores other use cases for the visicalc_engine types and library.
 
 ## Usage
 
@@ -139,3 +156,4 @@ The code above in getting started is also available in the `example/example.dart
 
 * The [Visicalc user interface and logo](https://en.wikipedia.org/wiki/VisiCalc) are referenced from wikipeida.
 * The parsing depends on the great library [petitparser](https://pub.dev/packages/petitparser) by Lukas Renggli.
+* For A1 Notation we leverage the a1 library [a1](https://pub.dev/packages/a1).

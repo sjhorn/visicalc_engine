@@ -40,4 +40,13 @@ enum CellFormat {
         CellFormat.left => 'L',
         CellFormat.right => 'R',
       };
+
+  String get fileFormat => switch (this) {
+        CellFormat.general => '',
+        CellFormat.dollars => '/F\$',
+        CellFormat.graph => '/F*',
+        CellFormat.integer => '/FI',
+        CellFormat.left => '/FL',
+        CellFormat.right => '/FR',
+      };
 }

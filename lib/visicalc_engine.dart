@@ -19,6 +19,7 @@
 library;
 
 export 'src/formula/grammar/format_expression.dart';
+export 'src/model/cell_change_type.dart';
 export 'src/formula/grammar/expression.dart';
 export 'src/formula/grammar/evaluator.dart';
 export 'src/formula/grammar/file_format.dart';

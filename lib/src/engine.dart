@@ -7,7 +7,7 @@ import 'dart:math';
 
 import 'package:a1/a1.dart';
 import 'package:petitparser/petitparser.dart';
-import 'package:visicalc_engine/src/model/cell_change_type.dart';
+import 'package:visicalc_engine/src/model/sheet.dart';
 import 'package:visicalc_engine/visicalc_engine.dart';
 
 /// CellChangeCallback is a listener function
@@ -16,17 +16,17 @@ import 'package:visicalc_engine/visicalc_engine.dart';
 typedef CellChangedCallback = void Function(
     Set<A1> a1Set, CellChangeType changeType);
 
-class Engine with Iterable<A1> {
+class Engine extends Sheet {
   static final _formatExpression = FormatExpression().build();
   static final _fileFormat = FileFormat().build();
   static final _validator = ValidateExpression().build<A1Cursor>();
-  final HashSet<CellChangedCallback> _listeners =
-      HashSet<CellChangedCallback>();
-  late final Map<A1, Cell> _cellMap;
-  late final ResultTypeCache _resultTypeCache;
-  final CellReferenceTracker _referencesToCell = CellReferenceTracker();
-  final bool _parseErrorThrows;
+  final bool parseErrorThrows;
   final List<GlobalDirectiveContent> globalDirectives = [];
+
+  /// Construct an empty Visicalc Engine
+  ///
+  /// parseErrorThrows - determins if
+  Engine({this.parseErrorThrows = false});
 
   /// Constructing / parsing cells from a sheet of [Map] of [A1] keys and
   /// [String] values.
@@ -54,13 +54,17 @@ class Engine with Iterable<A1> {
   ///    'B7'.a1: '@sum(a1...b6)',
   ///    'D13'.a1: 'b2',
   ///  };
-  ///  final worksheet = Engine(sheet, parseErrorThrows: true);
-  ///  print(worksheet);
+  ///  final engine = Engine.fromMap(sheet, parseErrorThrows: true);
+  ///  print(engine);
   ///  ```
-  Engine(Map<A1, String> sheet, {bool parseErrorThrows = false})
-      : _parseErrorThrows = parseErrorThrows {
-    _cellMap = _parseSheet(sheet);
-    _resultTypeCache = ResultTypeCache(_cellMap);
+  factory Engine.fromMap(Map<A1, String> map, {bool parseErrorThrows = false}) {
+    final engine = Engine(parseErrorThrows: parseErrorThrows);
+    for (final MapEntry(:key, :value) in map.entries) {
+      final cell = engine._parse(value);
+      engine.setCell(key, cell);
+      engine.addReferences(key, cell);
+    }
+    return engine;
   }
 
   /// Create the engine/spreadsheet from file contents
@@ -76,7 +80,7 @@ class Engine with Iterable<A1> {
   factory Engine.fromFileContents(String fileContents,
       {bool parseErrorThrows = false}) {
     const lineSeparator = '\r\n';
-    final engine = Engine({});
+    final engine = Engine();
     for (final line in fileContents.split(lineSeparator)) {
       if (line.isNotEmpty && line.codeUnits.first == 0) break;
       final result = _fileFormat.parse(line);
@@ -90,13 +94,36 @@ class Engine with Iterable<A1> {
 
       switch (result.value) {
         case MapEntry<A1, Cell>(:var key, :var value):
-          value.resultTypeCacheFunc = () => engine._resultTypeCache;
-          engine._setCell(key, value);
+          value.resultTypeCacheFunc = () => engine.resultTypeCache;
+          engine.setCell(key, value);
         case GlobalDirectiveContent():
           engine.globalDirectives.add(result.value);
       }
     }
     return engine;
+  }
+
+  /// Save the engine/sheet contents to the .vc file format
+  /// as a string
+  String toFileContents() {
+    const lineSeparator = '\r\n';
+
+    final stringBuffer = StringBuffer();
+    final keyList = keys.toList()..sort((a, b) => a.compareTo(b));
+    for (final a1 in keyList.reversed) {
+      final cell = getCell(a1)!;
+      switch (cell.content) {
+        case RepeatingContent(:var pattern):
+          stringBuffer.write('>$a1:/-$pattern$lineSeparator');
+        case ExpressionContent(:var formulaType):
+          stringBuffer.write(
+              '>$a1:${cell.format.fileFormat}${formulaType.asFormula}$lineSeparator');
+      }
+    }
+    // stringBuffer.write('/W1$lineSeparator/GOC$lineSeparator/GRA$lineSeparator'
+    //     '/GC10$lineSeparator/X>A1:>C14:$lineSeparator');
+    stringBuffer.write(List.filled(104, String.fromCharCode(0)).join(''));
+    return stringBuffer.toString();
   }
 
   /// validateExpression aims to validate a text expression
@@ -128,64 +155,20 @@ class Engine with Iterable<A1> {
     return (newString, insertPosition, inFunction);
   }
 
-  Map<A1, Cell> _parseSheet(Map<A1, String> sheet) {
-    final Map<A1, Cell> varMap = <A1, Cell>{};
-    for (final MapEntry(:key, :value) in sheet.entries) {
-      final cell = _parse(value);
-      varMap[key] = cell;
-      _addReferences(key, cell);
-    }
-    return varMap;
-  }
-
   Cell _parse(String cell) {
     final ast = _formatExpression.parse(cell);
     if (ast is Success) {
       final cell = ast.value as Cell;
-      cell.resultTypeCacheFunc = () => _resultTypeCache;
+      cell.resultTypeCacheFunc = () => resultTypeCache;
       return cell;
     } else {
-      if (_parseErrorThrows) {
+      if (parseErrorThrows) {
         throw FormatException('Error parsing [$cell]] - ${ast.message}');
       }
       return Cell(
         content: ExpressionContent(ErrorType(ast.message)),
-        resultTypeCacheFunc: () => _resultTypeCache,
+        resultTypeCacheFunc: () => resultTypeCache,
       );
-    }
-  }
-
-  /// Iterator that can be used to iterator over cells in the engine
-  /// in a simple for statement
-  ///
-  /// Example:
-  /// ```dart
-  /// for (final cell in engine.iterator) {
-  ///   print(engine[cell]);
-  /// }
-  /// ```
-  @override
-  Iterator<A1> get iterator => keys.iterator;
-
-  /// Return the [A1] keys for all cells in this engine
-  ///
-  /// Example:
-  /// ```dart
-  /// print(engine.keys); // A2,A3,A4...
-  /// ```
-  Iterable<A1> get keys => _cellMap.keys;
-
-  /// Add a [CellChangedCallback] listener for all changes to the engines cells
-  /// The types of changes include all the types in [CellChangeType]
-  void addListener(CellChangedCallback listener) => _listeners.add(listener);
-
-  /// Remove a [CellChangeCallback] listener
-  void removeListener(CellChangedCallback listener) =>
-      _listeners.remove(listener);
-
-  void _notifyListeners(Set<A1> a1Set, CellChangeType changeType) {
-    for (final listener in _listeners) {
-      listener(a1Set, changeType);
     }
   }
 
@@ -198,8 +181,8 @@ class Engine with Iterable<A1> {
   /// final cell = engine['a1'.a1]; // returns a Cell
   /// ```
   Cell? operator [](A1 a1) {
-    if (_cellMap.containsKey(a1)) {
-      return _cellMap[a1];
+    if (containsCellKey(a1)) {
+      return getCell(a1);
     }
     return null;
   }
@@ -216,26 +199,17 @@ class Engine with Iterable<A1> {
   /// ```
   ///
   void operator []=(A1 key, String? contents) {
-    if (_cellMap.containsKey(key)) {
-      _resultTypeCache.removeAll({key});
-      _removeReferences(key);
-      _notifyListeners({key}, CellChangeType.delete);
+    if (containsCellKey(key)) {
+      resultTypeCache.removeAll({key});
+      removeReferences(key);
+      notifyListeners({key}, CellChangeType.delete);
     }
 
     if (contents != null && contents.isNotEmpty) {
-      _setCell(key, _parse(contents));
+      setCell(key, _parse(contents));
     } else {
       remove(key);
     }
-  }
-
-  void _setCell(A1 key, Cell cell) {
-    // Clear the cache for cells that depend on this cell
-    _resultTypeCache.removeAll(_referencesToCell[key]);
-
-    _cellMap[key] = cell;
-    _notifyListeners({key}, CellChangeType.add);
-    _addReferences(key, cell);
   }
 
   /// This function clears all the cells in the engine
@@ -248,58 +222,12 @@ class Engine with Iterable<A1> {
     final a1set = keys.toSet();
     final a1Deps = keys.fold(<A1>{},
         (set, a1) => set..addAll(this[a1]?.formulaType?.references ?? {}));
-    _cellMap.clear();
-    _resultTypeCache.clear();
-    _referencesToCell.clear();
+    clearCells();
+    resultTypeCache.clear();
+    referencesToCell.clear();
 
-    _notifyListeners(a1set, CellChangeType.delete);
-    _notifyListeners(a1Deps, CellChangeType.referenceDelete);
-  }
-
-  /// columnsAndRows is a convenience functions that will return the
-  /// [int] indexes of the columns and rows in a separated record.
-  /// This can be useful to operations on rectangular areas of the sheet,
-  /// including empty cells and is used internally by the [move], [copy]
-  /// functions.
-  ///
-  /// The function also takes a call back criteria [Function] that accepts
-  /// an [A1] cell and returns a [bool] to decide whether to filter from the
-  /// list. The default [Iterable] is all [A1] in the engine, but this can
-  /// also be supplied in the a1Iterable method field.
-  ///
-  /// Example:
-  /// ```dart
-  /// (colummns,row) = engine.columnsAndRows();
-  /// for (final column in colums) {
-  ///   for (final row in rows) {
-  ///     A1 a1 = A1.fromVector(column, row);
-  ///   }
-  /// }
-  /// ```
-  (List<int>, List<int>) columnsAndRows({
-    bool Function(A1 cell)? criteria,
-    Iterable<A1>? a1Iterable,
-  }) {
-    final cellsInRange = (a1Iterable ?? keys).where(criteria ?? (_) => true);
-
-    if (cellsInRange.isEmpty) {
-      return ([], []);
-    }
-
-    // Determine the bounds in the sheet
-    var (minCol, minRow) = (cellsInRange.first.column, cellsInRange.first.row);
-    var (maxCol, maxRow) = (cellsInRange.first.column, cellsInRange.first.row);
-    for (final cell in cellsInRange) {
-      if (cell.column > maxCol) maxCol = cell.column;
-      if (cell.row > maxRow) maxRow = cell.row;
-      if (cell.column < minCol) minCol = cell.column;
-      if (cell.row < minRow) minRow = cell.row;
-    }
-    final columns =
-        List.generate(maxCol - minCol + 1, (index) => minCol + index);
-    final rows = List.generate(maxRow - minRow + 1, (index) => minRow + index);
-
-    return (columns, rows);
+    notifyListeners(a1set, CellChangeType.delete);
+    notifyListeners(a1Deps, CellChangeType.referenceDelete);
   }
 
   /// move allows a cell based on [A1] origin to move to a [A1] destiation.
@@ -318,13 +246,13 @@ class Engine with Iterable<A1> {
 
     // Rewrite cells references origin to destination
     // and refresh _references/cache
-    final cell = _cellMap[origin];
+    final cell = getCell(origin);
     final originFormula =
         cell?.content is ExpressionContent ? cell?.formulaType : null;
-    final references = _referencesToCell[origin] ?? {};
+    final references = referencesToCell[origin] ?? {};
 
     for (final reference in {...references}) {
-      _rewriteAndRefreshReference(reference, origin, destination);
+      rewriteAndRefreshReference(reference, origin, destination);
     }
 
     // Remove the origin and notify
@@ -334,8 +262,8 @@ class Engine with Iterable<A1> {
     if (originFormula != null) {
       this[destination] = originFormula.asFormula; // let the map notify
     } else if (originCell != null) {
-      _cellMap[destination] = originCell;
-      _notifyListeners({destination}, CellChangeType.add);
+      setCell(destination, originCell);
+      notifyListeners({destination}, CellChangeType.add);
     }
   }
 
@@ -526,12 +454,12 @@ class Engine with Iterable<A1> {
   Cell? remove(A1 key, {bool markDeleted = false}) {
     // 1. remove references to and nofity (move only)
     if (markDeleted) {
-      Set<A1>? references = _referencesToCell[key];
+      Set<A1>? references = referencesToCell[key];
       if (references != null) {
         final refSetCopy = {...references};
         final refsDeleted = <A1>{};
         for (final reference in refSetCopy) {
-          final cell = _cellMap[reference];
+          final cell = getCell(reference);
           if (cell != null && cell.content is ExpressionContent) {
             final formulaType = cell.formulaType;
             formulaType?.markDeletedCell(key);
@@ -540,25 +468,25 @@ class Engine with Iterable<A1> {
             // it will remain
             bool stillContainsRef = (formulaType?.hasReference(key)) ?? false;
             if (stillContainsRef == false) {
-              _referencesToCell.removeReferenceToCell(key, reference);
+              referencesToCell.removeReferenceToCell(key, reference);
               refsDeleted.add(reference);
             }
           }
         }
-        _resultTypeCache.removeAll(refSetCopy);
-        _notifyListeners(refsDeleted, CellChangeType.referenceDelete);
+        resultTypeCache.removeAll(refSetCopy);
+        notifyListeners(refsDeleted, CellChangeType.referenceDelete);
       }
     }
 
-    if (_cellMap.containsKey(key)) {
+    if (containsCellKey(key)) {
       // 2. remove and notify references deleted
-      _removeReferences(key);
+      removeReferences(key);
 
       // 3. Remove Cell and notify
-      final removedCell = _cellMap.remove(key);
-      _resultTypeCache.removeAll({key});
+      final removedCell = removeCell(key);
+      resultTypeCache.removeAll({key});
 
-      _notifyListeners({key}, CellChangeType.delete);
+      notifyListeners({key}, CellChangeType.delete);
       return removedCell;
     }
     return null;
@@ -572,7 +500,7 @@ class Engine with Iterable<A1> {
   /// final engine = Engine({'A2'.a1: '+A1'});
   /// print(engine.referencesTo('A1'.a1)); // A2,
   /// ```
-  Set<A1>? referencesTo(A1 cell) => _referencesToCell[cell];
+  Set<A1>? referencesTo(A1 cell) => referencesToCell[cell];
 
   /// To allow nice printing of the engine/sheet, the toString method
   /// provides a simple table view of the cell formulas and values
@@ -635,92 +563,12 @@ class Engine with Iterable<A1> {
 
       for (final column in columns) {
         final a1 = A1.fromVector(column, row);
-        final cell = _cellMap[a1];
+        final cell = getCell(a1);
         buffer.write(cell?.contentString.padRight(20) ?? ''.padRight(20));
         buffer.write(' | ${cell?.formattedString(20) ?? "".padRight(20)} | ');
       }
       buffer.write('\n');
     }
     return buffer.toString();
-  }
-
-  /// referencesToString utility method can be helpful for understanding
-  /// how cells reference each other.
-  ///
-  String referencesToString() {
-    final (columns, rows) = columnsAndRows(a1Iterable: _referencesToCell.keys);
-    StringBuffer buffer = StringBuffer();
-    for (final row in rows) {
-      for (final column in columns) {
-        final a1 = A1.fromVector(column, row);
-        final cell = "$a1: ${_referencesToCell[a1] ?? ''}";
-        buffer.write(cell.substring(0, min(cell.length, 20)).padRight(20));
-      }
-      buffer.write('\n');
-    }
-    return buffer.toString();
-  }
-
-  void _rewriteAndRefreshReference(A1 reference, A1 origin, A1 destination) {
-    final cell = _cellMap[reference];
-    if (cell != null && cell.content is ExpressionContent) {
-      final formula = cell.formulaType;
-      if (formula == null) return;
-
-      // Remove references
-      _removeReferences(reference);
-
-      // Rewrite formula
-      formula.visit((instance) {
-        if (instance is ReferenceType && instance.a1 == origin) {
-          //print('Moving reference from $origin to $destination');
-          instance.moveTo(destination);
-        }
-
-        // If we are moving a range sum and the to is expanding, uptdate to
-        if (instance is SumFunction && instance.value is ListRangeType) {
-          final range = instance.value as ListRangeType;
-          if (range.to == origin) {
-            range.moveTo(destination);
-          } else if (range.from == origin) {
-            range.moveFrom(destination);
-          }
-        }
-      });
-
-      _resultTypeCache.removeAll({reference});
-
-      // Add Reference back
-      _addReferences(reference, cell);
-    }
-  }
-
-  // References
-  void _addReferences(A1 location, Cell cellContent) {
-    if (cellContent.content is CellContent && cellContent.formulaType != null) {
-      FormulaType formulaType = cellContent.formulaType!;
-      final referenceSet = formulaType.references;
-      for (A1 reference in referenceSet) {
-        _referencesToCell.addReferenceToCell(reference, location);
-      }
-      if (referenceSet.isNotEmpty) {
-        _notifyListeners(referenceSet, CellChangeType.referenceAdd);
-      }
-    }
-  }
-
-  void _removeReferences(A1 cell) {
-    final cellContent = _cellMap[cell];
-    if (cellContent != null &&
-        cellContent.content is CellContent &&
-        cellContent.formulaType != null) {
-      final referenceSet = cellContent.formulaType!.references;
-      for (final a1 in referenceSet) {
-        _referencesToCell.removeReferenceToCell(a1, cell);
-      }
-      if (referenceSet.isNotEmpty) {
-        _notifyListeners(referenceSet, CellChangeType.referenceDelete);
-      }
-    }
   }
 }

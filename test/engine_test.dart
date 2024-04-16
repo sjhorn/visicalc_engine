@@ -1,4 +1,5 @@
 import 'package:a1/a1.dart';
+import 'package:test/expect.dart';
 import 'package:test/test.dart';
 import 'package:visicalc_engine/src/model/cell_change_type.dart';
 import 'package:visicalc_engine/visicalc_engine.dart';
@@ -21,17 +22,17 @@ void main() {
       'B7'.a1: '@sum(a1...b6)',
       'B8'.a1: '"This is a label',
     };
-    Engine engine = Engine(sheet);
+    Engine engine = Engine.fromMap(sheet);
     setUp(() {
-      engine = Engine(sheet);
+      engine = Engine.fromMap(sheet);
     });
 
     test(' - errors', () async {
-      final engine = Engine({'A1'.a1: '@'});
+      final engine = Engine.fromMap({'A1'.a1: '@'});
       expect(engine['a1'.a1]?.formulaType, isA<ErrorType>());
       expect(engine['a1'.a1]?.resultType, isA<ErrorResult>());
 
-      expect(() => Engine({'A1'.a1: '@'}, parseErrorThrows: true),
+      expect(() => Engine.fromMap({'A1'.a1: '@'}, parseErrorThrows: true),
           throwsA(isA<FormatException>()));
     });
     test(' - a negative number', () async {
@@ -92,9 +93,9 @@ void main() {
       'B6'.a1: '+b2',
       'B7'.a1: '@sum(a1...b6)',
     };
-    Engine engine = Engine({});
+    Engine engine = Engine();
     setUp(() {
-      engine = Engine(sheet);
+      engine = Engine.fromMap(sheet);
     });
     test(' - add dependancies', () async {
       expect(engine.referencesTo('A1'.a1), containsAll({'B1', 'B2', 'B7'}.a1));
@@ -163,9 +164,9 @@ void main() {
       'B7'.a1: '@sum(b1...b6)',
       'B8'.a1: '/-=',
     };
-    Engine engine = Engine({});
+    Engine engine = Engine();
     setUp(() {
-      engine = Engine(sheet);
+      engine = Engine.fromMap(sheet);
     });
     test(' - moving a repeating cell to empty cell', () async {
       final origin = 'b8'.a1;
@@ -290,7 +291,7 @@ void main() {
       'B6'.a1: '+b2',
       'B7'.a1: '@sum(b1...b6)',
     };
-    Engine engine = Engine({});
+    Engine engine = Engine();
 
     List<(CellChangeType, Set<A1>)> changes = [];
     void listener(a1Set, changeType) {
@@ -299,7 +300,7 @@ void main() {
 
     setUp(() {
       changes.clear();
-      engine = Engine(sheet);
+      engine = Engine.fromMap(sheet);
       engine.addListener(listener);
     });
     test(' - remove listener', () async {
@@ -371,9 +372,9 @@ void main() {
       'B6'.a1: '+b2',
       'B7'.a1: '@sum(b1...b6)',
     };
-    Engine engine = Engine({});
+    Engine engine = Engine();
     setUp(() {
-      engine = Engine(sheet);
+      engine = Engine.fromMap(sheet);
     });
     test(' - moving a range right to empty cell', () async {
       final range = 'a1:a6'.a1Range;
@@ -544,9 +545,9 @@ void main() {
     });
   });
   group('misc methods', () {
-    Engine engine = Engine({});
+    Engine engine = Engine();
     setUp(() {
-      engine = Engine({
+      engine = Engine.fromMap({
         'A1'.a1: '+A2',
         'A2'.a1: '12',
         'A3'.a1: '/-=',
@@ -607,5 +608,26 @@ void main() {
     final fileContents = '//GCA';
     expect(() => Engine.fromFileContents(fileContents, parseErrorThrows: true),
         throwsA(isA<FormatException>()));
+  });
+  test(' - output to .vc file format', () async {
+    final engine = Engine.fromMap({
+      'A1'.a1: 'Hello',
+      'B1'.a1: '/F\$12',
+      'C10'.a1: '/FL"string',
+      'D2'.a1: '/FI12.12',
+      'E2'.a1: '/FR@PI',
+      'Y3'.a1: '/-=',
+      'Z1'.a1: '/F*+B1',
+    });
+    expect(
+      engine.toFileContents(),
+      startsWith('>C10:/FL"string\r\n'
+          '>Y3:/-=\r\n'
+          '>E2:/FR@PI\r\n'
+          '>D2:/FI12.12\r\n'
+          '>Z1:/F*+B1\r\n'
+          '>B1:/F\$12\r\n>'
+          'A1:"Hello'),
+    );
   });
 }

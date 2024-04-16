@@ -18,7 +18,7 @@ void main(List<String> arguments) {
     'B7'.a1: '@sum(a1...b6)',
     'D13'.a1: '+b2',
   };
-  final worksheet = Engine(sheet, parseErrorThrows: true);
+  final worksheet = Engine.fromMap(sheet, parseErrorThrows: true);
   print(worksheet);
 
   // Change cell
@@ -30,6 +30,7 @@ void main(List<String> arguments) {
   b5 = worksheet["B5".a1];
   print('Now B5 formula is ${b5?.formulaType?.asFormula} = $b5');
   print(worksheet);
+  print('Output to a .vc file\n: ${worksheet.toFileContents()}');
 
   // .vc file example
   final fileContents = '''\
